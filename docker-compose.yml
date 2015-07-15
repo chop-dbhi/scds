@@ -1,0 +1,12 @@
+mongo:
+    image: mongo
+
+
+scds:
+    image: dbhi/scds
+
+    links:
+        - mongo:mongo
+
+    ports:
+        - 5000:5000
