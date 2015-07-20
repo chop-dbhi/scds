@@ -13,12 +13,16 @@ install:
 
 test-install: install
 	go get golang.org/x/tools/cmd/cover
+	go get github.com/mattn/goveralls
 
 build-install: install test-install
 	go get github.com/mitchellh/gox
 
 test:
 	go test -cover ./...
+
+test-travis:
+	./test-cover.sh
 
 bench:
 	go test -run=none -bench=. -benchmem ./...
