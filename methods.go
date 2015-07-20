@@ -54,7 +54,7 @@ func Get(s *mgo.Session, k string) (*Object, error) {
 	return &o, nil
 }
 
-func Log(s *mgo.Session, k string) ([]*Diff, error) {
+func Log(s *mgo.Session, k string) ([]*Revision, error) {
 	c := s.DB("").C(colName)
 
 	// Query.
@@ -88,17 +88,17 @@ func Log(s *mgo.Session, k string) ([]*Diff, error) {
 func insert(s *mgo.Session, k string, v map[string]interface{}) (*Object, bool, error) {
 	c := s.DB("").C(colName)
 
-	d := diff(v, nil)
-	d.Version = 1
-	d.Time = time.Now().UTC().Unix()
+	r := Diff(nil, v)
+	r.Version = 1
+	r.Time = time.Now().UTC().Unix()
 
 	o := Object{
 		ID:      bson.NewObjectId(),
 		Key:     k,
 		Value:   v,
-		Version: d.Version,
-		Time:    d.Time,
-		History: []*Diff{d},
+		Version: r.Version,
+		Time:    r.Time,
+		History: []*Revision{r},
 	}
 
 	err := c.Insert(&o)
@@ -107,43 +107,43 @@ func insert(s *mgo.Session, k string, v map[string]interface{}) (*Object, bool, 
 }
 
 // Updates an existing objects.
-func update(s *mgo.Session, o *Object, v map[string]interface{}) (*Diff, bool, error) {
-	d := diff(v, o.Value)
+func update(s *mgo.Session, o *Object, v map[string]interface{}) (*Revision, bool, error) {
+	r := Diff(o.Value, v)
 
-	if d == nil {
+	if r == nil {
 		return nil, false, nil
 	}
 
 	c := s.DB("").C(colName)
 
 	// Increment the version.
-	d.Version = o.Version + 1
-	d.Time = time.Now().UTC().Unix()
+	r.Version = o.Version + 1
+	r.Time = time.Now().UTC().Unix()
 
 	// Keys to update.
 	chg := mgo.Change{
 		ReturnNew: true,
 		Update: bson.M{
 			"$set": bson.M{
-				"version": d.Version,
-				"time":    d.Time,
+				"version": r.Version,
+				"time":    r.Time,
 				"value":   v,
 			},
 			"$push": bson.M{
-				"history": d,
+				"history": r,
 			},
 		},
 	}
 
 	// Apply the change.
 	if _, err := c.Find(bson.M{"_id": o.ID}).Apply(chg, o); err != nil {
-		return d, true, err
+		return r, true, err
 	}
 
-	return d, true, nil
+	return r, true, nil
 }
 
-func Put(s *mgo.Session, k string, v map[string]interface{}) (*Diff, error) {
+func Put(s *mgo.Session, k string, v map[string]interface{}) (*Revision, error) {
 	c := s.DB("").C(colName)
 
 	// Query.
@@ -152,7 +152,7 @@ func Put(s *mgo.Session, k string, v map[string]interface{}) (*Diff, error) {
 	}
 
 	var (
-		d       *Diff
+		r       *Revision
 		err     error
 		changed bool
 	)
@@ -178,14 +178,14 @@ func Put(s *mgo.Session, k string, v map[string]interface{}) (*Diff, error) {
 		return nil, err
 	}
 
-	d, changed, err = update(s, o, v)
+	r, changed, err = update(s, o, v)
 
 	if err != nil {
 		return nil, err
 	}
 
 	if changed {
-		return d, nil
+		return r, nil
 	}
 
 	return nil, nil

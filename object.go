@@ -6,7 +6,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type Diff struct {
+type Revision struct {
 	Version   int
 	Time      int64
 	Additions map[string]interface{}    `bson:",omitempty"`
@@ -20,18 +20,29 @@ type Object struct {
 	Value   map[string]interface{}
 	Version int
 	Time    int64
-	History []*Diff `json:",omitempty"`
+	History []*Revision `json:",omitempty"`
 }
 
 // Diff returns the set of changes representing the different between two
-// documents. The `a` document is being compared against the `b` document,
-// therefore the output will be relative to `a`. Currently this only diffs
-// the top-level keys and does not recurse into sub-documents.
-func diff(a, b map[string]interface{}) *Diff {
+// documents. Compares the before (`b`) and after (`a`) state of the document.
+// Currently this only diffs the top-level keys and does not recurse into
+// sub-documents.
+func Diff(b, a map[string]interface{}) *Revision {
+	if (a == nil || len(a) == 0) && (b == nil || len(b) == 0) {
+		return nil
+	}
+
 	// No existing document to compare, a is an addition.
-	if b == nil {
-		return &Diff{
+	if b == nil || len(b) == 0 {
+		return &Revision{
 			Additions: a,
+		}
+	}
+
+	// Next state is nil, b is a removal.
+	if a == nil || len(a) == 0 {
+		return &Revision{
+			Removals: b,
 		}
 	}
 
@@ -71,19 +82,19 @@ func diff(a, b map[string]interface{}) *Diff {
 	}
 
 	// Build the diff.
-	d := Diff{}
+	r := Revision{}
 
 	if len(adds) > 0 {
-		d.Additions = adds
+		r.Additions = adds
 	}
 
 	if len(removes) > 0 {
-		d.Removals = removes
+		r.Removals = removes
 	}
 
 	if len(changes) > 0 {
-		d.Changes = changes
+		r.Changes = changes
 	}
 
-	return &d
+	return &r
 }
