@@ -25,7 +25,7 @@ put <key> <value>
 
 #### `get`
 
-Get the current state of the object.
+Get the current state of the object. Use the `-version` or `-time` option to get a particular revision.
 
 ```
 get <key>
@@ -154,6 +154,8 @@ The input and output of the endpoints match the command-line interface.
 
 - `PUT /store/<key>`
 - `GET /store/<key>`
+- `GET /store/<key>/v/<version>`
+- `GET /store/<key>/t/<time>`
 - `GET /log/<key>` 
 
 

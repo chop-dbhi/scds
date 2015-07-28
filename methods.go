@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"fmt"
+	"os"
 	"time"
 
 	"gopkg.in/mgo.v2"
@@ -11,6 +12,10 @@ import (
 const colName = "objects"
 
 func Get(cfg *Config, k string) (*Object, error) {
+	return get(cfg, k, false)
+}
+
+func get(cfg *Config, k string, history bool) (*Object, error) {
 	s := cfg.Mongo.Session()
 
 	c := s.DB("").C(colName)
@@ -22,8 +27,11 @@ func Get(cfg *Config, k string) (*Object, error) {
 
 	// Projection.
 	p := bson.M{
-		"_id":     0,
-		"history": 0,
+		"_id": 0,
+	}
+
+	if !history {
+		p["history"] = 0
 	}
 
 	var o Object
@@ -184,7 +192,7 @@ func Put(cfg *Config, k string, v map[string]interface{}) (*Revision, error) {
 	// Object changed.
 	if changed {
 		if err = SendNotifications(cfg, o, r); err != nil {
-			log.Print("error sending email:", err)
+			fmt.Fprintln(os.Stderr, "[smtp] error sending email:", err)
 		}
 
 		return r, nil

@@ -46,12 +46,34 @@ func putCmd(cfg *Config, args []string) {
 }
 
 func getCmd(cfg *Config, args []string) {
+	var (
+		v  int
+		ts string
+	)
+
+	fs := flag.NewFlagSet("get", flag.ExitOnError)
+
+	fs.IntVar(&v, "version", 0, "Specific revision to get.")
+	fs.StringVar(&ts, "time", "", "Returns the object as of the specified time.")
+
+	fs.Parse(args)
+
+	args = fs.Args()
+
 	if len(args) != 1 {
 		PrintUsage("get")
 	}
 
+	t, err := ParseTimeString(ts)
+
+	if v > 0 && t > 0 {
+		fmt.Println("error: version and time are mutually exclusive\n")
+		PrintUsage("get")
+	}
+
 	defer cfg.Mongo.Close()
-	o, err := Get(cfg, args[0])
+
+	o, err := get(cfg, args[0], true)
 
 	if err != nil {
 		log.Fatal(err)
@@ -60,6 +82,18 @@ func getCmd(cfg *Config, args []string) {
 	if o == nil {
 		return
 	}
+
+	if v > 0 {
+		o = o.AtVersion(v)
+	} else if t > 0 {
+		o = o.AtTime(t)
+	}
+
+	if o == nil {
+		return
+	}
+
+	o.History = nil
 
 	b, err := json.MarshalIndent(o, "", "  ")
 

@@ -43,6 +43,11 @@ it, otherwise it will compare it with the existing state.
 var getUsage = `scds get <key>
 
 Gets the current state of an object if it exists.
+
+Options:
+
+	-version <int>	Gets the state at a specific version.
+	-time <time>	Gets the state at the specified time (Unix timestamp).
 `
 
 var logUsage = `scds log <key>
@@ -57,10 +62,12 @@ interface (CLI).
 
 Endpoints:
 
-	PUT /store/:key		Puts an object in the store.
-	GET /store/:key		Gets the latest state of an object from the store.
+	PUT /store/:key					Puts an object in the store.
+	GET /store/:key					Gets the latest state of an object from the store.
+	GET /store/:key/v/:version		Gets the state of an object at the specified version.
+	GET /store/:key/t/:time			Gets the state of an object at the specified time.
 
-	GET /log/:key		Returns an ordered set of diffs for an object.
+	GET /log/:key					Returns an ordered set of diffs for an object.
 
 Options:
 

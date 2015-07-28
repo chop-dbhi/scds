@@ -55,8 +55,6 @@ type MongoConfig struct {
 // Session returns an initialized MongoDB session.
 func (c *MongoConfig) Session() *mgo.Session {
 	if c.mongoSession == nil {
-		log.Printf("* [mongo] Connecting to %s", c.URI)
-
 		session, err := mgo.Dial(c.URI)
 
 		if err != nil {
@@ -80,7 +78,6 @@ func (c *MongoConfig) Session() *mgo.Session {
 // Close closes an open MongoDB session.
 func (c *MongoConfig) Close() {
 	if c.mongoSession != nil {
-		log.Print("* [mongo] Closing")
 		c.mongoSession.Close()
 	}
 }

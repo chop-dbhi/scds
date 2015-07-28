@@ -1,9 +1,14 @@
 package main
 
 import (
+	"errors"
 	"reflect"
 
 	"gopkg.in/mgo.v2/bson"
+)
+
+var (
+	ErrUnknownRevision = errors.New("unknown revision")
 )
 
 type Change struct {
@@ -26,6 +31,85 @@ type Object struct {
 	Version int
 	Time    int64
 	History []*Revision `json:",omitempty" yaml:",omitempty"`
+}
+
+func applyRevision(o *Object, r *Revision) {
+	var (
+		key string
+		val interface{}
+		chg Change
+	)
+
+	o.Version = r.Version
+	o.Time = r.Time
+
+	if r.Additions != nil {
+		for key, val = range r.Additions {
+			o.Value[key] = val
+		}
+	}
+
+	if r.Removals != nil {
+		for key, val = range r.Removals {
+			delete(o.Value, key)
+		}
+	}
+
+	if r.Changes != nil {
+		for key, chg = range r.Changes {
+			o.Value[key] = chg.After
+		}
+	}
+
+}
+
+// AtVersion reverts the objects to the specified version.
+func (o *Object) AtVersion(v int) *Object {
+	if v == 0 {
+		return nil
+	}
+
+	n := Object{
+		ID:    o.ID,
+		Key:   o.Key,
+		Value: make(map[string]interface{}),
+	}
+
+	for i, rev := range o.History {
+		if rev.Version > v {
+			n.History = o.History[:i]
+			break
+		}
+
+		applyRevision(&n, rev)
+	}
+
+	return &n
+}
+
+// AtTime reverts the object to the state as of the specified time.
+func (o *Object) AtTime(t int64) *Object {
+	n := Object{
+		ID:    o.ID,
+		Key:   o.Key,
+		Value: make(map[string]interface{}),
+	}
+
+	for i, rev := range o.History {
+		if rev.Time > t {
+			n.History = o.History[:i]
+			break
+		}
+
+		applyRevision(&n, rev)
+	}
+
+	// The time is earlier than the first revision of this object.
+	if n.Version == 0 {
+		return nil
+	}
+
+	return &n
 }
 
 // Diff returns the set of changes representing the different between two

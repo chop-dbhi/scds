@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
@@ -25,6 +26,9 @@ func runHTTP(cfg *Config) {
 
 	app.Put("/store/:key", putHandler)
 	app.Get("/store/:key", getHandler)
+	app.Get("/store/:key/v/:version", getHandler)
+	app.Get("/store/:key/t/:time", getHandler)
+
 	app.Get("/log/:key", logHandler)
 
 	addr := cfg.HTTP.Addr()
@@ -66,18 +70,53 @@ func putHandler(c *echo.Context) error {
 func getHandler(c *echo.Context) error {
 	key := c.Param("key")
 
+	vs := c.Param("version")
+	ts := c.Param("time")
+
 	cfg := c.Get("config").(*Config)
 
-	obj, err := Get(cfg, key)
+	obj, err := get(cfg, key, true)
 
 	if err != nil {
 		return err
+	}
+
+	if vs != "" {
+		v, err := strconv.Atoi(vs)
+
+		// Invalid parameter for version, treat as a 404.
+		if err != nil {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		// Version is greater than what is available.
+		if v > obj.Version || v < 0 {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		obj = obj.AtVersion(v)
+	} else if ts != "" {
+		t, err := ParseTimeString(ts)
+
+		// Invalid parameter for version, treat as a 404.
+		if err != nil {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		obj = obj.AtTime(t)
+
+		if obj == nil {
+			return c.NoContent(http.StatusNotFound)
+		}
 	}
 
 	// Does not exist.
 	if obj == nil {
 		return c.NoContent(http.StatusNoContent)
 	}
+
+	// Do not include history in output.
+	obj.History = nil
 
 	resp := c.Response()
 
