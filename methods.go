@@ -11,6 +11,32 @@ import (
 
 const colName = "objects"
 
+func Keys(cfg *Config) ([]string, error) {
+	s := cfg.Mongo.Session()
+
+	c := s.DB("").C(colName)
+
+	// Projection.
+	p := bson.M{
+		"_id": 0,
+		"key": 1,
+	}
+
+	var objs []*Object
+
+	if err := c.Find(nil).Select(p).All(&objs); err != nil {
+		return nil, err
+	}
+
+	keys := make([]string, len(objs))
+
+	for i, obj := range objs {
+		keys[i] = obj.Key
+	}
+
+	return keys, nil
+}
+
 func Get(cfg *Config, k string) (*Object, error) {
 	return get(cfg, k, false)
 }

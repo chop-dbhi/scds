@@ -31,6 +31,14 @@ Get the current state of the object. Use the `-version` or `-time` option to get
 get <key>
 ```
 
+#### `keys`
+
+Gets a list of keys in the store.
+
+```
+keys
+```
+
 #### `log`
 
 Get the log of changes for an object.
@@ -152,6 +160,7 @@ scds http
 
 The input and output of the endpoints match the command-line interface.
 
+- `GET /keys`
 - `PUT /store/<key>`
 - `GET /store/<key>`
 - `GET /store/<key>/v/<version>`

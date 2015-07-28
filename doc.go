@@ -16,6 +16,7 @@ Commands:
 	help		Prints the usage information.
 	put			Puts an object in the store.
 	get			Gets the latest state of an object from the store.
+	keys		Returns a list of keys in the store.
 	log			Returns an ordered set of diffs for an object.
 	http		Runs an HTTP service with a comparable set of commands.
 
@@ -50,6 +51,11 @@ Options:
 	-time <time>	Gets the state at the specified time (Unix timestamp).
 `
 
+var keysUsage = `scds keys
+
+Gets a list of keys in the store.
+`
+
 var logUsage = `scds log <key>
 
 Returns an ordered set of diffs for the object making up the log.
@@ -62,6 +68,7 @@ interface (CLI).
 
 Endpoints:
 
+	GET /keys						Returns a list keys in the store.
 	PUT /store/:key					Puts an object in the store.
 	GET /store/:key					Gets the latest state of an object from the store.
 	GET /store/:key/v/:version		Gets the state of an object at the specified version.
@@ -82,6 +89,8 @@ func PrintUsage(cmd string) {
 	switch cmd {
 	case "get":
 		usage = getUsage
+	case "keys":
+		usage = keysUsage
 	case "put":
 		usage = putUsage
 	case "log":

@@ -24,6 +24,7 @@ func runHTTP(cfg *Config) {
 		return nil
 	})
 
+	app.Get("/keys", keysHandler)
 	app.Put("/store/:key", putHandler)
 	app.Get("/store/:key", getHandler)
 	app.Get("/store/:key/v/:version", getHandler)
@@ -65,6 +66,20 @@ func putHandler(c *echo.Context) error {
 	resp := c.Response()
 
 	return json.NewEncoder(resp).Encode(obj)
+}
+
+func keysHandler(c *echo.Context) error {
+	cfg := c.Get("config").(*Config)
+
+	keys, err := Keys(cfg)
+
+	if err != nil {
+		return err
+	}
+
+	resp := c.Response()
+
+	return json.NewEncoder(resp).Encode(keys)
 }
 
 func getHandler(c *echo.Context) error {

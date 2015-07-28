@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 func putCmd(cfg *Config, args []string) {
@@ -102,6 +103,22 @@ func getCmd(cfg *Config, args []string) {
 	}
 
 	fmt.Fprintf(os.Stdout, "%s\n", b)
+}
+
+func keysCmd(cfg *Config, args []string) {
+	defer cfg.Mongo.Close()
+
+	keys, err := Keys(cfg)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(keys) == 0 {
+		return
+	}
+
+	fmt.Fprintln(os.Stdout, strings.Join(keys, "\n"))
 }
 
 func logCmd(cfg *Config, args []string) {

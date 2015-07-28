@@ -31,6 +31,9 @@ func main() {
 	case "get":
 		getCmd(cfg, args[1:])
 
+	case "keys":
+		keysCmd(cfg, args[1:])
+
 	case "log":
 		logCmd(cfg, args[1:])
 
