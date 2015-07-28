@@ -3,9 +3,36 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/smtp"
 
 	"gopkg.in/mgo.v2"
 )
+
+// SMTPConfig defines configuration fields for communicating with an SMTP server.
+// This is used for sending notification emails when changes occur.
+type SMTPConfig struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+	From     string
+
+	client *smtp.Client
+}
+
+// Addr returns the address of the SMTP host.
+func (s *SMTPConfig) Addr() string {
+	return fmt.Sprintf("%s:%d", s.Host, s.Port)
+}
+
+// Auth returns an authorization value for the SMTP server.
+func (s *SMTPConfig) Auth() smtp.Auth {
+	if s.User == "" {
+		return nil
+	}
+
+	return smtp.PlainAuth("", s.User, s.Password, s.Addr())
+}
 
 // HTTPConfig defines configuration fields running the HTTP service.
 type HTTPConfig struct {
@@ -63,4 +90,5 @@ type Config struct {
 	Debug bool
 	Mongo MongoConfig
 	HTTP  HTTPConfig
+	SMTP  SMTPConfig
 }

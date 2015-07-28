@@ -11,6 +11,8 @@ install:
 	go get gopkg.in/mgo.v2
 	go get gopkg.in/mgo.v2/bson
 	go get gopkg.in/yaml.v2
+	go get github.com/spf13/viper
+	go get github.com/jordan-wright/email
 
 test-install: install
 	go get golang.org/x/tools/cmd/cover

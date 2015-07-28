@@ -9,6 +9,12 @@ func main() {
 
 	flag.StringVar(&cfg.Mongo.URI, "mongo.uri", "localhost/scds", "URI of the MongoDB host or cluster.")
 
+	flag.StringVar(&cfg.SMTP.Host, "smtp.host", "localhost", "Host of the SMTP server.")
+	flag.IntVar(&cfg.SMTP.Port, "smtp.port", 25, "Port of the SMTP server.")
+	flag.StringVar(&cfg.SMTP.Host, "smtp.user", "", "SMTP user.")
+	flag.StringVar(&cfg.SMTP.Password, "smtp.password", "", "SMTP password.")
+	flag.StringVar(&cfg.SMTP.From, "smtp.from", "", "SMTP From address.")
+
 	flag.Parse()
 
 	args := flag.Args()

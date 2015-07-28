@@ -162,6 +162,12 @@ func Put(cfg *Config, k string, v map[string]interface{}) (*Revision, error) {
 			return nil, err
 		}
 
+		r = o.History[0]
+
+		if err = SendNotifications(cfg, o, r); err != nil {
+			fmt.Fprintln(os.Stderr, "[smtp] error sending email:", err)
+		}
+
 		return o.History[0], nil
 	}
 
@@ -175,7 +181,12 @@ func Put(cfg *Config, k string, v map[string]interface{}) (*Revision, error) {
 		return nil, err
 	}
 
+	// Object changed.
 	if changed {
+		if err = SendNotifications(cfg, o, r); err != nil {
+			log.Print("error sending email:", err)
+		}
+
 		return r, nil
 	}
 
