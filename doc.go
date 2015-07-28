@@ -69,10 +69,11 @@ interface (CLI).
 Endpoints:
 
 	GET /keys						Returns a list keys in the store.
-	PUT /store/:key					Puts an object in the store.
-	GET /store/:key					Gets the latest state of an object from the store.
-	GET /store/:key/v/:version		Gets the state of an object at the specified version.
-	GET /store/:key/t/:time			Gets the state of an object at the specified time.
+
+	PUT /objects/:key				Puts an object in the store.
+	GET /objects/:key				Gets the latest state of an object from the store.
+	GET /objects/:key/v/:version	Gets the state of an object at the specified version.
+	GET /objects/:key/t/:time		Gets the state of an object at the specified time.
 
 	GET /log/:key					Returns an ordered set of diffs for an object.
 

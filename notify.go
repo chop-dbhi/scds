@@ -97,7 +97,7 @@ func changedObjectEmail(cfg *Config, o *Object, r *Revision) (*email.Email, erro
 		Time:    time.Unix(r.Time, 0).Local(),
 		Key:     o.Key,
 		Version: r.Version,
-		URL:     fmt.Sprintf("http://%s/store/%s", cfg.HTTP.Addr(), o.Key),
+		URL:     fmt.Sprintf("http://%s/objects/%s", cfg.HTTP.Addr(), o.Key),
 	}
 
 	if r.Changes != nil {

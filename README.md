@@ -161,10 +161,10 @@ scds http
 The input and output of the endpoints match the command-line interface.
 
 - `GET /keys`
-- `PUT /store/<key>`
-- `GET /store/<key>`
-- `GET /store/<key>/v/<version>`
-- `GET /store/<key>/t/<time>`
+- `PUT /objects/<key>`
+- `GET /objects/<key>`
+- `GET /objects/<key>/v/<version>`
+- `GET /objects/<key>/t/<time>`
 - `GET /log/<key>` 
 
 

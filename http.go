@@ -25,10 +25,10 @@ func runHTTP(cfg *Config) {
 	})
 
 	app.Get("/keys", keysHandler)
-	app.Put("/store/:key", putHandler)
-	app.Get("/store/:key", getHandler)
-	app.Get("/store/:key/v/:version", getHandler)
-	app.Get("/store/:key/t/:time", getHandler)
+	app.Put("/objects/:key", putHandler)
+	app.Get("/objects/:key", getHandler)
+	app.Get("/objects/:key/v/:version", getHandler)
+	app.Get("/objects/:key/t/:time", getHandler)
 
 	app.Get("/log/:key", logHandler)
 
