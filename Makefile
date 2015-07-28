@@ -10,6 +10,7 @@ install:
 	go get github.com/labstack/echo
 	go get gopkg.in/mgo.v2
 	go get gopkg.in/mgo.v2/bson
+	go get gopkg.in/yaml.v2
 
 test-install: install
 	go get golang.org/x/tools/cmd/cover

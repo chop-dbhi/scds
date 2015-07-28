@@ -2,14 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"os"
-
-	"gopkg.in/mgo.v2"
 )
 
-func putCmd(s *mgo.Session, args []string) {
+func putCmd(cfg *Config, args []string) {
 	if len(args) != 1 {
 		PrintUsage("put")
 	}
@@ -26,7 +25,8 @@ func putCmd(s *mgo.Session, args []string) {
 		err = json.NewDecoder(os.Stdin).Decode(&val)
 	}
 
-	o, err := Put(s, args[0], val)
+	defer cfg.Mongo.Close()
+	o, err := Put(cfg, args[0], val)
 
 	if err != nil {
 		log.Fatal(err)
@@ -45,12 +45,13 @@ func putCmd(s *mgo.Session, args []string) {
 	fmt.Fprintf(os.Stdout, "%s\n", b)
 }
 
-func getCmd(s *mgo.Session, args []string) {
+func getCmd(cfg *Config, args []string) {
 	if len(args) != 1 {
 		PrintUsage("get")
 	}
 
-	o, err := Get(s, args[0])
+	defer cfg.Mongo.Close()
+	o, err := Get(cfg, args[0])
 
 	if err != nil {
 		log.Fatal(err)
@@ -69,12 +70,13 @@ func getCmd(s *mgo.Session, args []string) {
 	fmt.Fprintf(os.Stdout, "%s\n", b)
 }
 
-func logCmd(s *mgo.Session, args []string) {
+func logCmd(cfg *Config, args []string) {
 	if len(args) != 1 {
 		PrintUsage("log")
 	}
 
-	l, err := Log(s, args[0])
+	defer cfg.Mongo.Close()
+	l, err := Log(cfg, args[0])
 
 	if err != nil {
 		log.Fatal(err)
@@ -93,6 +95,15 @@ func logCmd(s *mgo.Session, args []string) {
 	fmt.Fprintf(os.Stdout, "%s\n", b)
 }
 
-func httpCmd(s *mgo.Session, args []string) {
-	runHTTP(s)
+func httpCmd(cfg *Config, args []string) {
+	fs := flag.NewFlagSet("http", flag.ExitOnError)
+
+	fs.StringVar(&cfg.HTTP.Host, "host", "localhost", "Host to bind to.")
+	fs.IntVar(&cfg.HTTP.Port, "port", 5000, "Port to bind to.")
+
+	fs.Parse(args)
+
+	defer cfg.Mongo.Close()
+
+	runHTTP(cfg)
 }

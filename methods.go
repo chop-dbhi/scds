@@ -10,22 +10,9 @@ import (
 
 const colName = "objects"
 
-// Initializes a session with mongodb.
-func initDB() *mgo.Session {
-	session, err := mgo.Dial(mongoURI)
+func Get(cfg *Config, k string) (*Object, error) {
+	s := cfg.Mongo.Session()
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err = session.DB("").C(colName).EnsureIndexKey("key"); err != nil {
-		log.Fatal(err)
-	}
-
-	return session
-}
-
-func Get(s *mgo.Session, k string) (*Object, error) {
 	c := s.DB("").C(colName)
 
 	// Query.
@@ -54,7 +41,9 @@ func Get(s *mgo.Session, k string) (*Object, error) {
 	return &o, nil
 }
 
-func Log(s *mgo.Session, k string) ([]*Revision, error) {
+func Log(cfg *Config, k string) ([]*Revision, error) {
+	s := cfg.Mongo.Session()
+
 	c := s.DB("").C(colName)
 
 	// Query.
@@ -143,7 +132,9 @@ func update(s *mgo.Session, o *Object, v map[string]interface{}) (*Revision, boo
 	return r, true, nil
 }
 
-func Put(s *mgo.Session, k string, v map[string]interface{}) (*Revision, error) {
+func Put(cfg *Config, k string, v map[string]interface{}) (*Revision, error) {
+	s := cfg.Mongo.Session()
+
 	c := s.DB("").C(colName)
 
 	// Query.

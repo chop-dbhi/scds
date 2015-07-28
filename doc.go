@@ -19,6 +19,18 @@ Commands:
 	log			Returns an ordered set of diffs for an object.
 	http		Runs an HTTP service with a comparable set of commands.
 
+Global Options:
+
+	-debug	Turn on debug output.
+
+	-mongo.uri <uri>	Specify one or more MongoDB hosts [default: localhost/scds].
+
+	-smtp.host <host>		Host of the SMTP server [default: localhost].
+	-smtp.port <port>		Port of the SMTP server [default: 25].
+	-smtp.user <user>		User to authenticate with the SMTP server.
+	-smtp.password <pass>	Password to authenticate with the SMTP server.
+	-smtp.from <from>		From email address.
+
 Run 'sdcs help <cmd>' to get help about a specific command.
 `
 
@@ -26,28 +38,16 @@ var putUsage = `scds put <key> <object>
 
 Puts an object into the store. If the object does not exist, it will create
 it, otherwise it will compare it with the existing state.
-
-Options:
-
-	--mongo=<uri>	Specify one or more MongoDB hosts [default: localhost/scds].
 `
 
 var getUsage = `scds get <key>
 
 Gets the current state of an object if it exists.
-
-Options:
-
-	--mongo=<uri>	Specify one or more MongoDB hosts [default: localhost/scds].
 `
 
 var logUsage = `scds log <key>
 
 Returns an ordered set of diffs for the object making up the log.
-
-Options:
-
-	--mongo=<uri>	Specify one or more MongoDB hosts [default: localhost/scds].
 `
 
 var httpUsage = `scds http [--host=<host>] [--port=<port>]
@@ -59,14 +59,14 @@ Endpoints:
 
 	PUT /store/:key		Puts an object in the store.
 	GET /store/:key		Gets the latest state of an object from the store.
+
 	GET /log/:key		Returns an ordered set of diffs for an object.
 
 Options:
 
-	--host=<host>	The host to bind the HTTP server to [default: ""].
-	--port=<port>	The port to bind the HTTP server to [default: 5000].
+	-host <host>	The host to bind the HTTP server to [default: localhost].
+	-port <port>	The port to bind the HTTP server to [default: 5000].
 
-	--mongo=<uri>	Specify one or more MongoDB hosts [default: localhost/scds].
 `
 
 func PrintUsage(cmd string) {

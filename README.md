@@ -145,7 +145,7 @@ Start the HTTP server.
 
 ```bash
 scds http
-* Listening on :5000...
+* [http] Listening on locahost:5000
 ```
 
 The input and output of the endpoints match the command-line interface.

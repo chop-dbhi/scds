@@ -2,24 +2,24 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
-	"gopkg.in/mgo.v2"
 )
 
-func runHTTP(s *mgo.Session) {
+func runHTTP(cfg *Config) {
 	app := echo.New()
 
 	app.Use(mw.Logger())
 	app.Use(mw.Gzip())
 	app.Use(mw.Recover())
 
+	app.SetDebug(cfg.Debug)
+
 	app.Use(func(c *echo.Context) error {
-		c.Set("session", s)
+		c.Set("config", cfg)
 		return nil
 	})
 
@@ -27,8 +27,8 @@ func runHTTP(s *mgo.Session) {
 	app.Get("/store/:key", getHandler)
 	app.Get("/log/:key", logHandler)
 
-	addr := fmt.Sprintf("%s:%d", host, port)
-	log.Printf("Listening on %s...", addr)
+	addr := cfg.HTTP.Addr()
+	log.Printf("* [http] Listening on %s", addr)
 
 	app.Run(addr)
 }
@@ -45,9 +45,9 @@ func putHandler(c *echo.Context) error {
 		return err
 	}
 
-	sess := c.Get("session").(*mgo.Session)
+	cfg := c.Get("config").(*Config)
 
-	obj, err := Put(sess, key, val)
+	obj, err := Put(cfg, key, val)
 
 	if err != nil {
 		return err
@@ -66,9 +66,9 @@ func putHandler(c *echo.Context) error {
 func getHandler(c *echo.Context) error {
 	key := c.Param("key")
 
-	sess := c.Get("session").(*mgo.Session)
+	cfg := c.Get("config").(*Config)
 
-	obj, err := Get(sess, key)
+	obj, err := Get(cfg, key)
 
 	if err != nil {
 		return err
@@ -87,9 +87,9 @@ func getHandler(c *echo.Context) error {
 func logHandler(c *echo.Context) error {
 	key := c.Param("key")
 
-	sess := c.Get("session").(*mgo.Session)
+	cfg := c.Get("config").(*Config)
 
-	log, err := Log(sess, key)
+	log, err := Log(cfg, key)
 
 	if err != nil {
 		return err
