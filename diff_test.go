@@ -78,8 +78,8 @@ func TestChange(t *testing.T) {
 		"foo": 2,
 	}
 
-	d := map[string][2]interface{}{
-		"foo": {1, 2},
+	d := map[string]Change{
+		"foo": Change{1, 2},
 	}
 
 	r := Diff(b, a)

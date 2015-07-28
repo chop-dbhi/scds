@@ -82,7 +82,9 @@ scds put bob '{"name": "Bob Smith", "email": "bob@smith.net"}'
   },
   "Removals": null,
   "Changes": {
-    "name": ["Bob", "Bob Smith"]
+    "name": {
+      "Before": "Bob",
+      "After": "Bob Smith"
   }
 }
 ```
@@ -130,10 +132,10 @@ scds log bob
     },
     "Removals": null,
     "Changes": {
-      "name": [
-        "Bob",
-        "Bob Smith"
-      ]
+      "name": {
+        "Before": "Bob",
+        "After": "Bob Smith"
+      }
     }
   }
 ]

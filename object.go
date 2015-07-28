@@ -6,12 +6,17 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type Change struct {
+	Before interface{}
+	After  interface{}
+}
+
 type Revision struct {
 	Version   int
 	Time      int64
-	Additions map[string]interface{}    `bson:",omitempty"`
-	Removals  map[string]interface{}    `bson:",omitempty"`
-	Changes   map[string][2]interface{} `bson:",omitempty"`
+	Additions map[string]interface{} `bson:",omitempty"`
+	Removals  map[string]interface{} `bson:",omitempty"`
+	Changes   map[string]Change      `bson:",omitempty"`
 }
 
 type Object struct {
@@ -20,7 +25,7 @@ type Object struct {
 	Value   map[string]interface{}
 	Version int
 	Time    int64
-	History []*Revision `json:",omitempty"`
+	History []*Revision `json:",omitempty" yaml:",omitempty"`
 }
 
 // Diff returns the set of changes representing the different between two
@@ -53,7 +58,7 @@ func Diff(b, a map[string]interface{}) *Revision {
 
 		adds    = make(map[string]interface{})
 		removes = make(map[string]interface{})
-		changes = make(map[string][2]interface{})
+		changes = make(map[string]Change)
 	)
 
 	// Additions and changes.
@@ -64,7 +69,10 @@ func Diff(b, a map[string]interface{}) *Revision {
 
 			// Compare a and b values.
 		} else if !reflect.DeepEqual(av, bv) {
-			changes[ak] = [2]interface{}{bv, av}
+			changes[ak] = Change{
+				Before: bv,
+				After:  av,
+			}
 		}
 	}
 
