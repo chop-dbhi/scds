@@ -10,7 +10,7 @@ import (
 )
 
 func putCmd(cfg *Config, args []string) {
-	if len(args) != 1 {
+	if len(args) < 1 {
 		PrintUsage("put")
 	}
 
