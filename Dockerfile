@@ -13,4 +13,4 @@ ENTRYPOINT ["/go/bin/scds"]
 EXPOSE 5000
 
 # Run the HTTP server.
-CMD ["-mongo", "mongo/scds", "http", "-host", "0.0.0.0"]
+CMD ["-mongo.uri", "mongo/scds", "http", "-host", "0.0.0.0"]

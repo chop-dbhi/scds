@@ -4,9 +4,87 @@ import (
 	"fmt"
 	"log"
 	"net/smtp"
+	"os"
+	"strings"
 
+	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2"
 )
+
+func InitConfig() {
+	viper.SetConfigName("scds")
+	viper.SetConfigType("yaml")
+
+	viper.SetEnvPrefix("scds")
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	// Set non-zero defaults. Nested options take a lower precedence than
+	// dot-delimited ones, so namespaced options are defined here as maps.
+	viper.SetDefault("mongo", map[string]interface{}{
+		"uri": "localhost/scds",
+	})
+
+	viper.SetDefault("http", map[string]interface{}{
+		"host": "localhost",
+		"port": 5000,
+	})
+
+	viper.SetDefault("smtp", map[string]interface{}{
+		"host": "localhost",
+		"port": 25,
+	})
+
+	// Read the default config file from the working directory.
+	dir, err := os.Getwd()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	viper.AddConfigPath(dir)
+}
+
+func GetConfig() *Config {
+	// Load custom config file if explicitly set.
+	if path := viper.GetString("config"); path != "" {
+		file, err := os.Open(path)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		defer file.Close()
+
+		if err = viper.ReadConfig(file); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		viper.ReadInConfig()
+	}
+
+	return &Config{
+		Debug:  viper.GetBool("debug"),
+		Config: viper.GetString("config"),
+
+		Mongo: MongoConfig{
+			URI: viper.GetString("mongo.uri"),
+		},
+
+		HTTP: HTTPConfig{
+			Host: viper.GetString("http.host"),
+			Port: viper.GetInt("http.port"),
+		},
+
+		SMTP: SMTPConfig{
+			Host:     viper.GetString("smtp.host"),
+			Port:     viper.GetInt("smtp.port"),
+			User:     viper.GetString("smtp.user"),
+			Password: viper.GetString("smtp.password"),
+			From:     viper.GetString("smtp.from"),
+		},
+	}
+}
 
 // SMTPConfig defines configuration fields for communicating with an SMTP server.
 // This is used for sending notification emails when changes occur.
@@ -84,8 +162,9 @@ func (c *MongoConfig) Close() {
 
 // Config contains all configuration options.
 type Config struct {
-	Debug bool
-	Mongo MongoConfig
-	HTTP  HTTPConfig
-	SMTP  SMTPConfig
+	Debug  bool
+	Config string
+	Mongo  MongoConfig
+	HTTP   HTTPConfig
+	SMTP   SMTPConfig
 }

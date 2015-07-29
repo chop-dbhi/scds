@@ -1,30 +1,28 @@
 package main
 
 import (
-	"os"
 	"strconv"
 	"testing"
-
-	"gopkg.in/mgo.v2"
 )
 
-var session *mgo.Session
+var cfg *Config
 
 func init() {
-	// Set the global.
-	mongoURI = os.Getenv("MONGO_URI")
-	session = initDB()
+	InitConfig()
+	cfg = GetConfig()
 }
 
 func resetDB() {
-	session.DB("").DropDatabase()
+	cfg = GetConfig()
+	cfg.Mongo.Session().DB("").DropDatabase()
 }
 
 func TestMethods(t *testing.T) {
+	defer cfg.Mongo.Close()
 	resetDB()
 
 	// Does not exist.
-	o, err := Get(session, "bob")
+	o, err := Get(cfg, "bob")
 
 	if o != nil {
 		t.Error("get1: object should be nil", o)
@@ -35,7 +33,7 @@ func TestMethods(t *testing.T) {
 	}
 
 	// Put the state of bob.
-	_, err = Put(session, "bob", map[string]interface{}{
+	_, err = Put(cfg, "bob", map[string]interface{}{
 		"name": "Bob",
 	})
 
@@ -44,7 +42,7 @@ func TestMethods(t *testing.T) {
 	}
 
 	// Get the state of bob.
-	o, err = Get(session, "bob")
+	o, err = Get(cfg, "bob")
 
 	if o == nil {
 		t.Error("get2: object should not be nil")
@@ -55,7 +53,7 @@ func TestMethods(t *testing.T) {
 	}
 
 	// Put the state of bob (again).
-	_, err = Put(session, "bob", map[string]interface{}{
+	_, err = Put(cfg, "bob", map[string]interface{}{
 		"name":  "Bob",
 		"email": "bob@smith.net",
 	})
@@ -65,7 +63,7 @@ func TestMethods(t *testing.T) {
 	}
 
 	// Get the revisions.
-	h, err := Log(session, "bob")
+	h, err := Log(cfg, "bob")
 
 	if len(h) != 2 {
 		t.Error("log1: expected 2 revisions, got %d", len(h))
@@ -73,6 +71,7 @@ func TestMethods(t *testing.T) {
 }
 
 func BenchmarkPutInsert(b *testing.B) {
+	defer cfg.Mongo.Close()
 	resetDB()
 
 	v := map[string]interface{}{
@@ -85,11 +84,12 @@ func BenchmarkPutInsert(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		Put(session, strconv.Itoa(i), v)
+		Put(cfg, strconv.Itoa(i), v)
 	}
 }
 
 func BenchmarkPutUpdate(b *testing.B) {
+	defer cfg.Mongo.Close()
 	resetDB()
 
 	k := "item"
@@ -102,17 +102,18 @@ func BenchmarkPutUpdate(b *testing.B) {
 	}
 
 	// Initial revision.
-	Put(session, k, v)
+	Put(cfg, k, v)
 
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
 		v["qt"] = i + 1
-		Put(session, k, v)
+		Put(cfg, k, v)
 	}
 }
 
 func BenchmarkGet(b *testing.B) {
+	defer cfg.Mongo.Close()
 	resetDB()
 
 	k := "item"
@@ -124,11 +125,11 @@ func BenchmarkGet(b *testing.B) {
 		"active": true,
 	}
 
-	Put(session, k, v)
+	Put(cfg, k, v)
 
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		Get(session, k)
+		Get(cfg, k)
 	}
 }

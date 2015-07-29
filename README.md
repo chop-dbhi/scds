@@ -173,6 +173,34 @@ The input and output of the endpoints match the command-line interface.
 - MongoDB
 
 
+## Configuration
+
+Configuration options can be supplied in a file, as environment variables, or command-line arguments (following that precedence). The default configuration options are listed below (in a YAML format).
+
+```yaml
+debug: false
+config: ""
+mongo:
+  uri: localhost/scds
+http:
+  host: localhost
+  port: 5000
+smtp:
+  host: localhost
+  port: 25
+  user: ""
+  password: ""
+  from: ""
+```
+
+Environment variables are prefixed with `SCDS_`, are uppercased, and nested options are delimited with an underscore. For example, `SCDS_MONGO_URI` would set the `uri` option in the `mongo` map. Alternately, the command-line flag can be supplied:
+
+```
+scds -mongo.uri dockerhost/scds ...
+```
+
+If a `scds.yml` file is defined in the working directory, it will be read in automatically. To use an alternate path, the `-config <path>` (or `SCDS_CONFIG=<path>`) can be used.
+
 ## Docker
 
 The image defaults to running the HTTP interface and looks for a MongoDB server listening on `mongo:27017`.

@@ -7,9 +7,11 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
-func putCmd(cfg *Config, args []string) {
+func putCmd(args []string) {
 	if len(args) < 1 {
 		PrintUsage("put")
 	}
@@ -25,6 +27,8 @@ func putCmd(cfg *Config, args []string) {
 	} else {
 		err = json.NewDecoder(os.Stdin).Decode(&val)
 	}
+
+	cfg := GetConfig()
 
 	defer cfg.Mongo.Close()
 	o, err := Put(cfg, args[0], val)
@@ -46,7 +50,7 @@ func putCmd(cfg *Config, args []string) {
 	fmt.Fprintf(os.Stdout, "%s\n", b)
 }
 
-func getCmd(cfg *Config, args []string) {
+func getCmd(args []string) {
 	var (
 		v  int
 		ts string
@@ -71,6 +75,8 @@ func getCmd(cfg *Config, args []string) {
 		fmt.Println("error: version and time are mutually exclusive\n")
 		PrintUsage("get")
 	}
+
+	cfg := GetConfig()
 
 	defer cfg.Mongo.Close()
 
@@ -105,7 +111,9 @@ func getCmd(cfg *Config, args []string) {
 	fmt.Fprintf(os.Stdout, "%s\n", b)
 }
 
-func keysCmd(cfg *Config, args []string) {
+func keysCmd(args []string) {
+	cfg := GetConfig()
+
 	defer cfg.Mongo.Close()
 
 	keys, err := Keys(cfg)
@@ -121,12 +129,15 @@ func keysCmd(cfg *Config, args []string) {
 	fmt.Fprintln(os.Stdout, strings.Join(keys, "\n"))
 }
 
-func logCmd(cfg *Config, args []string) {
+func logCmd(args []string) {
 	if len(args) != 1 {
 		PrintUsage("log")
 	}
 
+	cfg := GetConfig()
+
 	defer cfg.Mongo.Close()
+
 	l, err := Log(cfg, args[0])
 
 	if err != nil {
@@ -146,13 +157,19 @@ func logCmd(cfg *Config, args []string) {
 	fmt.Fprintf(os.Stdout, "%s\n", b)
 }
 
-func httpCmd(cfg *Config, args []string) {
+func httpCmd(args []string) {
 	fs := flag.NewFlagSet("http", flag.ExitOnError)
 
-	fs.StringVar(&cfg.HTTP.Host, "host", "localhost", "Host to bind to.")
-	fs.IntVar(&cfg.HTTP.Port, "port", 5000, "Port to bind to.")
+	fs.String("host", "localhost", "Host to bind to.")
+	fs.Int("port", 5000, "Port to bind to.")
 
 	fs.Parse(args)
+
+	fs.Visit(func(f *flag.Flag) {
+		viper.Set(fmt.Sprintf("http.%s", f.Name), f.Value.(flag.Getter).Get())
+	})
+
+	cfg := GetConfig()
 
 	defer cfg.Mongo.Close()
 

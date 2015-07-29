@@ -1,21 +1,36 @@
 package main
 
-import "flag"
+import (
+	"flag"
+	"log"
+	"os"
+
+	"github.com/spf13/viper"
+)
 
 func main() {
-	cfg := new(Config)
+	// Initialize viper and default options.
+	InitConfig()
 
-	flag.BoolVar(&cfg.Debug, "debug", false, "Turn on debug output.")
+	// Setup flags.
+	flag.String("config", viper.GetString("config"), "Alternate path to the config file.")
 
-	flag.StringVar(&cfg.Mongo.URI, "mongo.uri", "localhost/scds", "URI of the MongoDB host or cluster.")
+	flag.Bool("debug", viper.GetBool("debug"), "Turn on debug output.")
+	flag.String("mongo.uri", viper.GetString("mongo.uri"), "URI of the MongoDB host or cluster.")
 
-	flag.StringVar(&cfg.SMTP.Host, "smtp.host", "localhost", "Host of the SMTP server.")
-	flag.IntVar(&cfg.SMTP.Port, "smtp.port", 25, "Port of the SMTP server.")
-	flag.StringVar(&cfg.SMTP.Host, "smtp.user", "", "SMTP user.")
-	flag.StringVar(&cfg.SMTP.Password, "smtp.password", "", "SMTP password.")
-	flag.StringVar(&cfg.SMTP.From, "smtp.from", "", "SMTP From address.")
+	flag.String("smtp.host", viper.GetString("smtp.host"), "Host of the SMTP server.")
+	flag.Int("smtp.port", viper.GetInt("smtp.port"), "Port of the SMTP server.")
+	flag.String("smtp.user", viper.GetString("smtp.user"), "SMTP user.")
+	flag.String("smtp.password", viper.GetString("smtp.password"), "SMTP password.")
+	flag.String("smtp.from", viper.GetString("smtp.from"), "SMTP From address.")
 
 	flag.Parse()
+
+	// Visit all of the seen flags to update the config.
+	// All flag types in flag package support the getter interface.
+	flag.Visit(func(f *flag.Flag) {
+		viper.Set(f.Name, f.Value.(flag.Getter).Get())
+	})
 
 	args := flag.Args()
 
@@ -26,19 +41,19 @@ func main() {
 	// Route command.
 	switch args[0] {
 	case "put":
-		putCmd(cfg, args[1:])
+		putCmd(args[1:])
 
 	case "get":
-		getCmd(cfg, args[1:])
+		getCmd(args[1:])
 
 	case "keys":
-		keysCmd(cfg, args[1:])
+		keysCmd(args[1:])
 
 	case "log":
-		logCmd(cfg, args[1:])
+		logCmd(args[1:])
 
 	case "http":
-		httpCmd(cfg, args[1:])
+		httpCmd(args[1:])
 
 	default:
 		// Print usage of speific command.

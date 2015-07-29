@@ -1,2 +1,4 @@
 *.sw?
 profile.cov
+scds.yml
+scds.yaml
