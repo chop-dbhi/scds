@@ -11,22 +11,28 @@ import (
 )
 
 var (
+	// Root template tree of notification templates.
 	notifyTemplate = template.New("notify")
 
+	// Template of the email body when new a object is created.
 	notifyNewObjectEmailBody = `Key: {{.Key}}
 Version: {{.Version}}
 Time: {{.Time}}
 URL: {{.URL}}
+Version URL: {{.VersionURL}}
 
 # Object
 
 {{.Object}}
 `
 
+	// Template of the email body when an object has changed.
 	notifyChangedObjectEmailBody = `Key: {{.Key}}
 Version: {{.Version}}
 Time: {{.Time}}
 URL: {{.URL}}
+Version URL: {{.VersionURL}}
+
 {{if .Changes}}
 # Changes
 
@@ -41,20 +47,22 @@ URL: {{.URL}}
 )
 
 func init() {
-	// Initialize the email body.
+	// Compile the email bodies.
 	template.Must(notifyTemplate.New("new-object").Parse(notifyNewObjectEmailBody))
 	template.Must(notifyTemplate.New("changed-object").Parse(notifyChangedObjectEmailBody))
 }
 
-type context struct {
-	Time      time.Time
-	Key       string
-	Version   int
-	URL       string
-	Object    string
-	Additions string
-	Removals  string
-	Changes   string
+// EmailContext is the template EmailContext for email bodies.
+type EmailContext struct {
+	Time       time.Time
+	Key        string
+	Version    int
+	URL        string
+	VersionURL string
+	Object     string
+	Additions  string
+	Removals   string
+	Changes    string
 }
 
 func newObjectEmail(cfg *Config, o *Object) (*email.Email, error) {
@@ -64,11 +72,12 @@ func newObjectEmail(cfg *Config, o *Object) (*email.Email, error) {
 		buff bytes.Buffer
 	)
 
-	cxt := context{
-		Time:    time.Unix(o.Time, 0).Local(),
-		Key:     o.Key,
-		Version: o.Version,
-		URL:     fmt.Sprintf("http://%s/objects/%s", cfg.HTTP.Addr(), o.Key),
+	cxt := EmailContext{
+		Time:       time.Unix(o.Time, 0).Local(),
+		Key:        o.Key,
+		Version:    o.Version,
+		URL:        fmt.Sprintf("http://%s/objects/%s", cfg.HTTP.Addr(), o.Key),
+		VersionURL: fmt.Sprintf("http://%s/objects/%s/v/%d", cfg.HTTP.Addr(), o.Key, o.Version),
 	}
 
 	byt, _ = yaml.Marshal(o.Value)
@@ -93,11 +102,12 @@ func changedObjectEmail(cfg *Config, o *Object, r *Revision) (*email.Email, erro
 		buff bytes.Buffer
 	)
 
-	cxt := context{
-		Time:    time.Unix(r.Time, 0).Local(),
-		Key:     o.Key,
-		Version: r.Version,
-		URL:     fmt.Sprintf("http://%s/objects/%s", cfg.HTTP.Addr(), o.Key),
+	cxt := EmailContext{
+		Time:       time.Unix(r.Time, 0).Local(),
+		Key:        o.Key,
+		Version:    r.Version,
+		URL:        fmt.Sprintf("http://%s/objects/%s", cfg.HTTP.Addr(), o.Key),
+		VersionURL: fmt.Sprintf("http://%s/objects/%s/v/%d", cfg.HTTP.Addr(), o.Key, r.Version),
 	}
 
 	if r.Changes != nil {
