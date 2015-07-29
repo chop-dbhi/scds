@@ -14,6 +14,7 @@ write interface is key-value based where the value is a valid JSON document.
 Commands:
 
 	help		Prints the usage information.
+	config		Prints all the configuration options.
 	put			Puts an object in the store.
 	get			Gets the latest state of an object from the store.
 	keys		Returns a list of keys in the store.
@@ -84,20 +85,34 @@ Options:
 
 `
 
+var configUsage = `scds config
+
+Prints the configuration options defined across the configuration file, environment
+variables, and command-line flags.
+`
+
 func PrintUsage(cmd string) {
 	var usage string
 
 	switch cmd {
 	case "get":
 		usage = getUsage
+
 	case "keys":
 		usage = keysUsage
+
 	case "put":
 		usage = putUsage
+
 	case "log":
 		usage = logUsage
+
 	case "http":
 		usage = httpUsage
+
+	case "config":
+		usage = configUsage
+
 	default:
 		usage = defaultUsage
 	}

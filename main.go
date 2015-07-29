@@ -2,8 +2,6 @@ package main
 
 import (
 	"flag"
-	"log"
-	"os"
 
 	"github.com/spf13/viper"
 )
@@ -54,6 +52,9 @@ func main() {
 
 	case "http":
 		httpCmd(args[1:])
+
+	case "config":
+		configCmd(args[1:])
 
 	default:
 		// Print usage of speific command.

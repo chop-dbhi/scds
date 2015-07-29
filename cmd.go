@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 func putCmd(args []string) {
@@ -174,4 +175,10 @@ func httpCmd(args []string) {
 	defer cfg.Mongo.Close()
 
 	runHTTP(cfg)
+}
+
+func configCmd(args []string) {
+	b, _ := yaml.Marshal(GetConfig())
+
+	fmt.Fprintf(os.Stdout, string(b))
 }

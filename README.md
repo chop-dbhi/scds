@@ -47,6 +47,14 @@ Get the log of changes for an object.
 log <key>
 ```
 
+#### `config`
+
+Prints the configuration options used.
+
+```
+config
+```
+
 ### CLI
 
 See `scds help` for more information.
