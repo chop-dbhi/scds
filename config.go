@@ -16,6 +16,13 @@ const (
 	mongoSubscribers = "subcribers"
 )
 
+// Safety mode of the MongoDB instance.
+var safeMode = &mgo.Safe{
+	WMode:    "majority",
+	WTimeout: 2000,
+	FSync:    true,
+}
+
 func InitConfig() {
 	viper.SetConfigName("scds")
 	viper.SetConfigType("yaml")
@@ -147,6 +154,8 @@ func (c *MongoConfig) Session() *mgo.Session {
 		if err = session.Ping(); err != nil {
 			log.Fatal(err)
 		}
+
+		session.SetSafe(safeMode)
 
 		if err = session.DB("").C(mongoObjects).EnsureIndexKey("key"); err != nil {
 			log.Fatal(err)
