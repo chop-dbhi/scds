@@ -30,7 +30,11 @@ test-travis:
 bench:
 	go test -run=none -bench=. -benchmem ./...
 
-build:
+assets:
+	go-bindata -o bindata.go \
+		-ignore \\.sw[a-z] -ignore \\.DS_Store email/
+
+build: assets
 	go build -o $(GOPATH)/bin/scds .
 
 # Build and tag binaries for each OS and architecture.
@@ -50,4 +54,4 @@ lint:
 	golint ./...
 
 
-.PHONY: test
+.PHONY: test assets

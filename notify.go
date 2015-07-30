@@ -3,53 +3,30 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"strings"
 	"text/template"
 	"time"
 
 	"github.com/jordan-wright/email"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/yaml.v2"
 )
 
-var (
-	// Root template tree of notification templates.
-	notifyTemplate = template.New("notify")
-
-	// Template of the email body when new a object is created.
-	notifyNewObjectEmailBody = `Key: {{.Key}}
-Version: {{.Version}}
-Time: {{.Time}}
-URL: {{.URL}}
-Version URL: {{.VersionURL}}
-
-# Object
-
-{{.Object}}
-`
-
-	// Template of the email body when an object has changed.
-	notifyChangedObjectEmailBody = `Key: {{.Key}}
-Version: {{.Version}}
-Time: {{.Time}}
-URL: {{.URL}}
-Version URL: {{.VersionURL}}
-
-{{if .Changes}}
-# Changes
-
-{{.Changes}}{{end}}{{if .Additions}}
-# Additions
-
-{{.Additions}}{{end}}{{if .Removals}}
-# Removals
-
-{{.Removals}}{{end}}
-`
-)
+// Template tree of notification templates.
+var notifyTemplate = template.New("notify")
 
 func init() {
+	// Template of the email body when new a object is created.
+	newObject := string(MustAsset("email/new_object_email_body.txt"))
+
+	// Template of the email body when an object has changed.
+	changedObject := string(MustAsset("email/changed_object_email_body.txt"))
+
 	// Compile the email bodies.
-	template.Must(notifyTemplate.New("new-object").Parse(notifyNewObjectEmailBody))
-	template.Must(notifyTemplate.New("changed-object").Parse(notifyChangedObjectEmailBody))
+	template.Must(notifyTemplate.New("new-object").Parse(newObject))
+	template.Must(notifyTemplate.New("changed-object").Parse(changedObject))
 }
 
 // EmailContext is the template EmailContext for email bodies.
@@ -137,7 +114,7 @@ func changedObjectEmail(cfg *Config, o *Object, r *Revision) (*email.Email, erro
 	return e, nil
 }
 
-func SendNotifications(cfg *Config, o *Object, r *Revision) error {
+func NotifyEmail(cfg *Config, o *Object, r *Revision) error {
 	var (
 		e   *email.Email
 		err error
@@ -154,9 +131,114 @@ func SendNotifications(cfg *Config, o *Object, r *Revision) error {
 		return err
 	}
 
-	e.From = cfg.SMTP.From
-	e.To = []string{cfg.SMTP.From}
-	e.Bcc = []string{}
+	q := bson.M{
+		"subscribed": true,
+	}
 
-	return e.Send(cfg.SMTP.Addr(), cfg.SMTP.Auth())
+	p := bson.M{
+		"email": 1,
+	}
+
+	var subs []*Subscriber
+
+	if err = cfg.Mongo.Subscribers().Find(q).Select(p).All(&subs); err != nil {
+		return err
+	}
+
+	// No subscribers.
+	if len(subs) == 0 {
+		return nil
+	}
+
+	e.From = cfg.SMTP.From
+	e.To = make([]string, 1)
+
+	for _, sub := range subs {
+		e.To[0] = sub.Email
+
+		if err = e.Send(cfg.SMTP.Addr(), cfg.SMTP.Auth()); err != nil {
+			log.Printf("error sending email: %s", err)
+		}
+	}
+
+	return nil
+}
+
+// Subscriber
+type Subscriber struct {
+	Email string
+	Time  time.Time
+}
+
+// SubscribeEmail subscribes one or more email addresses to receive notification
+// emails when object events occurs. The return value is the number of subscribers
+// added and error if one occurred.
+func SubscribeEmail(cfg *Config, emails ...string) (int, error) {
+	c := cfg.Mongo.Subscribers()
+
+	var (
+		n    int
+		err  error
+		info *mgo.ChangeInfo
+		sub  *Subscriber
+		q    bson.M
+	)
+
+	// Upsert the subscribers based on the email address. Email
+	// addresses to lowercased for consistency.
+	for _, email := range emails {
+		sub = &Subscriber{
+			Email: strings.ToLower(email),
+			Time:  time.Now().UTC(),
+		}
+
+		q = bson.M{
+			"email": sub.Email,
+		}
+
+		if info, err = c.Upsert(q, sub); err != nil {
+			break
+		}
+
+		// If the document was not updated, it was inserted.
+		if info.Updated == 0 {
+			n++
+		}
+	}
+
+	return n, err
+}
+
+// UnsubscribeEmail unsubscribes email addresses from receiving notifications.
+func UnsubscribeEmail(cfg *Config, emails ...string) (int, error) {
+	c := cfg.Mongo.Subscribers()
+
+	var (
+		n   int
+		err error
+		q   bson.M
+	)
+
+	for _, email := range emails {
+		email = strings.ToLower(email)
+
+		q = bson.M{
+			"email": email,
+		}
+
+		err = c.Remove(q)
+
+		// No subscriber with the email.
+		if err == mgo.ErrNotFound {
+			continue
+		}
+
+		if err != nil {
+			break
+		}
+
+		n++
+	}
+
+	return n, err
 }

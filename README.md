@@ -55,6 +55,22 @@ Prints the configuration options used.
 config
 ```
 
+#### `subscribe`
+
+Subscribes one or more email addresses for notifications.
+
+```
+subscribe email [emails...]
+```
+
+#### `unsubscribe`
+
+Unsubscribes one or more email addresses from notifications.
+
+```
+unsubscribe email [emails...]
+```
+
 ### CLI
 
 See `scds help` for more information.
@@ -174,6 +190,15 @@ The input and output of the endpoints match the command-line interface.
 - `GET /objects/<key>/v/<version>`
 - `GET /objects/<key>/t/<time>`
 - `GET /log/<key>` 
+
+
+## Notifications
+
+SCDS has built-in support for basic email notifications when new objects are added or when objects change. To subscribe, use the `subscribe` command.
+
+```
+scds subscribe <email>
+```
 
 
 ## Dependencies

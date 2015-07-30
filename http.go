@@ -25,6 +25,7 @@ func runHTTP(cfg *Config) {
 	})
 
 	app.Get("/keys", keysHandler)
+
 	app.Put("/objects/:key", putHandler)
 	app.Get("/objects/:key", getHandler)
 	app.Get("/objects/:key/v/:version", getHandler)

@@ -11,6 +11,11 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
+const (
+	mongoObjects     = "objects"
+	mongoSubscribers = "subcribers"
+)
+
 func InitConfig() {
 	viper.SetConfigName("scds")
 	viper.SetConfigType("yaml")
@@ -143,7 +148,11 @@ func (c *MongoConfig) Session() *mgo.Session {
 			log.Fatal(err)
 		}
 
-		if err = session.DB("").C(colName).EnsureIndexKey("key"); err != nil {
+		if err = session.DB("").C(mongoObjects).EnsureIndexKey("key"); err != nil {
+			log.Fatal(err)
+		}
+
+		if err = session.DB("").C(mongoSubscribers).EnsureIndexKey("email"); err != nil {
 			log.Fatal(err)
 		}
 
@@ -158,6 +167,16 @@ func (c *MongoConfig) Close() {
 	if c.mongoSession != nil {
 		c.mongoSession.Close()
 	}
+}
+
+// Objects returns the default objects collection.
+func (c *MongoConfig) Objects() *mgo.Collection {
+	return c.Session().DB("").C(mongoObjects)
+}
+
+// Subscribers returns the subscribers collection.
+func (c *MongoConfig) Subscribers() *mgo.Collection {
+	return c.Session().DB("").C(mongoSubscribers)
 }
 
 // Config contains all configuration options.

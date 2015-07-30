@@ -22,11 +22,15 @@ func putCmd(args []string) {
 		val map[string]interface{}
 	)
 
-	// Decoded provided argument other read from stdin.
+	// Decode argument or read from stdin.
 	if len(args) == 2 {
 		err = json.Unmarshal([]byte(args[1]), &val)
 	} else {
 		err = json.NewDecoder(os.Stdin).Decode(&val)
+	}
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	cfg := GetConfig()
@@ -181,4 +185,44 @@ func configCmd(args []string) {
 	b, _ := yaml.Marshal(GetConfig())
 
 	fmt.Fprintf(os.Stdout, string(b))
+}
+
+func subscribeCmd(args []string) {
+	if len(args) == 0 {
+		fmt.Fprintf(os.Stderr, "No emails provided.")
+	}
+
+	cfg := GetConfig()
+
+	n, err := SubscribeEmail(cfg, args...)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if n == 1 {
+		fmt.Fprintln(os.Stdout, "Subscribed 1 new email")
+	} else {
+		fmt.Fprintf(os.Stdout, "Subscribed %d new emails\n", n)
+	}
+}
+
+func unsubscribeCmd(args []string) {
+	if len(args) == 0 {
+		fmt.Fprintf(os.Stderr, "No emails provided.")
+	}
+
+	cfg := GetConfig()
+
+	n, err := UnsubscribeEmail(cfg, args...)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if n == 1 {
+		fmt.Fprintln(os.Stdout, "Unsubscribed 1 email")
+	} else {
+		fmt.Fprintf(os.Stdout, "Unsubscribed %d emails\n", n)
+	}
 }

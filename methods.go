@@ -3,18 +3,29 @@ package main
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"time"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-const colName = "objects"
+func ErrInvalidKey(k string) error {
+	return fmt.Errorf("Key contains invalid chars: %s", k)
+}
+
+var keyRegexp *regexp.Regexp
+
+func init() {
+	keyRegexp = regexp.MustCompile(`^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*$`)
+}
+
+func checkKey(key string) bool {
+	return keyRegexp.MatchString(key)
+}
 
 func Keys(cfg *Config) ([]string, error) {
-	s := cfg.Mongo.Session()
-
-	c := s.DB("").C(colName)
+	c := cfg.Mongo.Objects()
 
 	// Projection.
 	p := bson.M{
@@ -42,9 +53,11 @@ func Get(cfg *Config, k string) (*Object, error) {
 }
 
 func get(cfg *Config, k string, history bool) (*Object, error) {
-	s := cfg.Mongo.Session()
+	if !checkKey(k) {
+		return nil, ErrInvalidKey(k)
+	}
 
-	c := s.DB("").C(colName)
+	c := cfg.Mongo.Objects()
 
 	// Query.
 	q := bson.M{
@@ -76,9 +89,11 @@ func get(cfg *Config, k string, history bool) (*Object, error) {
 }
 
 func Log(cfg *Config, k string) ([]*Revision, error) {
-	s := cfg.Mongo.Session()
+	if !checkKey(k) {
+		return nil, ErrInvalidKey(k)
+	}
 
-	c := s.DB("").C(colName)
+	c := cfg.Mongo.Objects()
 
 	// Query.
 	q := bson.M{
@@ -108,9 +123,7 @@ func Log(cfg *Config, k string) ([]*Revision, error) {
 }
 
 // Inserts an object into the store.
-func insert(s *mgo.Session, k string, v map[string]interface{}) (*Object, bool, error) {
-	c := s.DB("").C(colName)
-
+func insert(c *mgo.Collection, k string, v map[string]interface{}) (*Object, bool, error) {
 	r := Diff(nil, v)
 	r.Version = 1
 	r.Time = time.Now().UTC().Unix()
@@ -130,14 +143,12 @@ func insert(s *mgo.Session, k string, v map[string]interface{}) (*Object, bool, 
 }
 
 // Updates an existing objects.
-func update(s *mgo.Session, o *Object, v map[string]interface{}) (*Revision, bool, error) {
+func update(c *mgo.Collection, o *Object, v map[string]interface{}) (*Revision, bool, error) {
 	r := Diff(o.Value, v)
 
 	if r == nil {
 		return nil, false, nil
 	}
-
-	c := s.DB("").C(colName)
 
 	// Increment the version.
 	r.Version = o.Version + 1
@@ -167,9 +178,11 @@ func update(s *mgo.Session, o *Object, v map[string]interface{}) (*Revision, boo
 }
 
 func Put(cfg *Config, k string, v map[string]interface{}) (*Revision, error) {
-	s := cfg.Mongo.Session()
+	if !checkKey(k) {
+		return nil, ErrInvalidKey(k)
+	}
 
-	c := s.DB("").C(colName)
+	c := cfg.Mongo.Objects()
 
 	// Query.
 	q := bson.M{
@@ -190,7 +203,7 @@ func Put(cfg *Config, k string, v map[string]interface{}) (*Revision, error) {
 
 	// Does not exist. Insert it.
 	if err == mgo.ErrNotFound {
-		o, changed, err = insert(s, k, v)
+		o, changed, err = insert(c, k, v)
 
 		if err != nil {
 			return nil, err
@@ -198,7 +211,7 @@ func Put(cfg *Config, k string, v map[string]interface{}) (*Revision, error) {
 
 		r = o.History[0]
 
-		if err = SendNotifications(cfg, o, r); err != nil {
+		if err = NotifyEmail(cfg, o, r); err != nil {
 			fmt.Fprintln(os.Stderr, "[smtp] error sending email:", err)
 		}
 
@@ -209,7 +222,7 @@ func Put(cfg *Config, k string, v map[string]interface{}) (*Revision, error) {
 		return nil, err
 	}
 
-	r, changed, err = update(s, o, v)
+	r, changed, err = update(c, o, v)
 
 	if err != nil {
 		return nil, err
@@ -217,7 +230,7 @@ func Put(cfg *Config, k string, v map[string]interface{}) (*Revision, error) {
 
 	// Object changed.
 	if changed {
-		if err = SendNotifications(cfg, o, r); err != nil {
+		if err = NotifyEmail(cfg, o, r); err != nil {
 			fmt.Fprintln(os.Stderr, "[smtp] error sending email:", err)
 		}
 

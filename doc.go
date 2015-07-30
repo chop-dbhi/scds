@@ -20,6 +20,8 @@ Commands:
 	keys		Returns a list of keys in the store.
 	log			Returns an ordered set of diffs for an object.
 	http		Runs an HTTP service with a comparable set of commands.
+	subscribe	Subscribes one or more emails to receive notifications.
+	unsubscribe	Unsubscribes one or more emails from receiving notifications.
 
 Global Options:
 
@@ -91,6 +93,18 @@ Prints the configuration options defined across the configuration file, environm
 variables, and command-line flags.
 `
 
+var subscribeUsage = `scds subscribe email [emails...]
+
+Subscribes one or more email addresses to receive notifications. Email
+addresses that already subscribed will not be subscribed again.
+`
+
+var unsubscribeUsage = `scds unsubscribe email [emails...]
+
+Unsubscribes one or more email addresses from receiving notifications. Emails
+that are not subscribes will be ignored.
+`
+
 func PrintUsage(cmd string) {
 	var usage string
 
@@ -112,6 +126,12 @@ func PrintUsage(cmd string) {
 
 	case "config":
 		usage = configUsage
+
+	case "subscribe":
+		usage = subscribeUsage
+
+	case "unsubscribe":
+		usage = unsubscribeUsage
 
 	default:
 		usage = defaultUsage

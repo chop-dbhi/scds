@@ -56,6 +56,12 @@ func main() {
 	case "config":
 		configCmd(args[1:])
 
+	case "subscribe":
+		subscribeCmd(args[1:])
+
+	case "unsubscribe":
+		unsubscribeCmd(args[1:])
+
 	default:
 		// Print usage of speific command.
 		if len(args) == 2 {

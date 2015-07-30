@@ -1,0 +1,16 @@
+Key: {{.Key}}
+Version: {{.Version}}
+Time: {{.Time}}
+URL: {{.URL}}
+Version URL: {{.VersionURL}}
+
+{{if .Changes}}
+# Changes
+
+{{.Changes}}{{end}}{{if .Additions}}
+# Additions
+
+{{.Additions}}{{end}}{{if .Removals}}
+# Removals
+
+{{.Removals}}{{end}}
