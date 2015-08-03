@@ -8,7 +8,10 @@ import (
 
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
+	"gopkg.in/mgo.v2/bson"
 )
+
+const StatusUnprocessableEntity = 422
 
 func runHTTP(cfg *Config) {
 	app := echo.New()
@@ -25,6 +28,10 @@ func runHTTP(cfg *Config) {
 	})
 
 	app.Get("/keys", keysHandler)
+
+	app.Get("/subscribers", getSubscribersHandler)
+	app.Post("/subscribers", addSubscribersHandler)
+	app.Delete("/subscriber/:token", deleteSubscriberHandler)
 
 	app.Put("/objects/:key", putHandler)
 	app.Get("/objects/:key", getHandler)
@@ -158,4 +165,74 @@ func logHandler(c *echo.Context) error {
 	resp := c.Response()
 
 	return json.NewEncoder(resp).Encode(log)
+}
+
+func getSubscribersHandler(c *echo.Context) error {
+	resp := c.Response()
+
+	cfg := c.Get("config").(*Config)
+
+	subs, err := AllSubscribers(cfg)
+
+	if err != nil {
+		return err
+	}
+
+	return json.NewEncoder(resp).Encode(subs)
+}
+
+func addSubscribersHandler(c *echo.Context) error {
+	req := c.Request()
+
+	cfg := c.Get("config").(*Config)
+
+	var (
+		err    error
+		emails []string
+	)
+
+	if err = json.NewDecoder(req.Body).Decode(&emails); err != nil {
+		return c.JSON(StatusUnprocessableEntity, map[string]interface{}{
+			"message": "problem decoding request body",
+			"error":   err,
+		})
+	}
+
+	subs, err := SubscribeEmail(cfg, emails...)
+
+	if err != nil {
+		return c.JSON(StatusUnprocessableEntity, map[string]interface{}{
+			"message": "problem subscribing emails",
+			"error":   err,
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"subscribed": len(subs),
+	})
+}
+
+func deleteSubscriberHandler(c *echo.Context) error {
+	token := c.Param("token")
+
+	cfg := c.Get("config").(*Config)
+
+	if !bson.IsObjectIdHex(token) {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	ok, err := UnsubscribeID(cfg, bson.ObjectIdHex(token))
+
+	if err != nil {
+		return c.JSON(StatusUnprocessableEntity, map[string]interface{}{
+			"message": "problem unsubscribing email",
+			"error":   err,
+		})
+	}
+
+	if !ok {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	return c.NoContent(http.StatusOK)
 }

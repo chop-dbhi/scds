@@ -29,6 +29,8 @@ func InitConfig() {
 
 	viper.SetEnvPrefix("scds")
 	viper.AutomaticEnv()
+
+	// Replaces underscores with periods when mapping environment variables.
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	// Set non-zero defaults. Nested options take a lower precedence than

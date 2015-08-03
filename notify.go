@@ -166,22 +166,36 @@ func NotifyEmail(cfg *Config, o *Object, r *Revision) error {
 
 // Subscriber
 type Subscriber struct {
+	ID    bson.ObjectId `bson:"_id,omitempty"`
 	Email string
 	Time  time.Time
 }
 
+func AllSubscribers(cfg *Config) ([]*Subscriber, error) {
+	c := cfg.Mongo.Subscribers()
+
+	var subs []*Subscriber
+
+	if err := c.Find(nil).All(&subs); err != nil {
+		return nil, err
+	}
+
+	return subs, nil
+}
+
 // SubscribeEmail subscribes one or more email addresses to receive notification
-// emails when object events occurs. The return value is the number of subscribers
-// added and error if one occurred.
-func SubscribeEmail(cfg *Config, emails ...string) (int, error) {
+// emails when object events occurs. Returned are the new subscribers or an error
+// if one occurred.
+func SubscribeEmail(cfg *Config, emails ...string) ([]*Subscriber, error) {
 	c := cfg.Mongo.Subscribers()
 
 	var (
-		n    int
+		q    bson.M
 		err  error
+		chg  mgo.Change
 		info *mgo.ChangeInfo
 		sub  *Subscriber
-		q    bson.M
+		subs []*Subscriber
 	)
 
 	// Upsert the subscribers based on the email address. Email
@@ -196,17 +210,26 @@ func SubscribeEmail(cfg *Config, emails ...string) (int, error) {
 			"email": sub.Email,
 		}
 
-		if info, err = c.Upsert(q, sub); err != nil {
+		chg = mgo.Change{
+			Upsert:    true,
+			ReturnNew: true,
+			Update: bson.M{
+				"$setOnInsert": sub,
+			},
+		}
+
+		if info, err = c.Find(q).Apply(chg, sub); err != nil {
 			break
 		}
 
 		// If the document was not updated, it was inserted.
 		if info.Updated == 0 {
-			n++
+			subs = append(subs, sub)
 		}
+
 	}
 
-	return n, err
+	return subs, err
 }
 
 // UnsubscribeEmail unsubscribes email addresses from receiving notifications.
@@ -241,4 +264,25 @@ func UnsubscribeEmail(cfg *Config, emails ...string) (int, error) {
 	}
 
 	return n, err
+}
+
+func UnsubscribeID(cfg *Config, id bson.ObjectId) (bool, error) {
+	c := cfg.Mongo.Subscribers()
+
+	q := bson.M{
+		"_id": id,
+	}
+
+	err := c.Remove(q)
+
+	// No subscriber with the id.
+	if err == mgo.ErrNotFound {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

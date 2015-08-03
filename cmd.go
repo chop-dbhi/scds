@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/yaml.v2"
 )
 
@@ -194,16 +195,16 @@ func subscribeCmd(args []string) {
 
 	cfg := GetConfig()
 
-	n, err := SubscribeEmail(cfg, args...)
+	subs, err := SubscribeEmail(cfg, args...)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if n == 1 {
+	if len(subs) == 1 {
 		fmt.Fprintln(os.Stdout, "Subscribed 1 new email")
 	} else {
-		fmt.Fprintf(os.Stdout, "Subscribed %d new emails\n", n)
+		fmt.Fprintf(os.Stdout, "Subscribed %d new emails\n", len(subs))
 	}
 }
 
@@ -216,7 +217,7 @@ func unsubscribeCmd(args []string) {
 
 	n, err := UnsubscribeEmail(cfg, args...)
 
-	if err != nil {
+	if err != nil && err != mgo.ErrNotFound {
 		log.Fatal(err)
 	}
 
