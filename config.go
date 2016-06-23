@@ -86,8 +86,10 @@ func GetConfig() *Config {
 		},
 
 		HTTP: HTTPConfig{
-			Host: viper.GetString("http.host"),
-			Port: viper.GetInt("http.port"),
+			Host:    viper.GetString("http.host"),
+			Port:    viper.GetInt("http.port"),
+			TLSCert: viper.GetString("http.tlscert"),
+			TLSKey:  viper.GetString("http.tlskey"),
 		},
 
 		SMTP: SMTPConfig{
@@ -128,8 +130,10 @@ func (s *SMTPConfig) Auth() smtp.Auth {
 
 // HTTPConfig defines configuration fields running the HTTP service.
 type HTTPConfig struct {
-	Host string
-	Port int
+	Host    string
+	Port    int
+	TLSCert string
+	TLSKey  string
 }
 
 // Addr returns the HTTP address of the SCDS service.

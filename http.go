@@ -57,6 +57,11 @@ func runHTTP(cfg *Config) {
 		Address: addr,
 	}
 
+	if cfg.HTTP.TLSKey != "" {
+		ecfg.TLSCertFile = cfg.HTTP.TLSCert
+		ecfg.TLSKeyFile = cfg.HTTP.TLSKey
+	}
+
 	app.Run(standard.WithConfig(ecfg))
 }
 

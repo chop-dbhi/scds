@@ -189,7 +189,7 @@ The input and output of the endpoints match the command-line interface.
 - `GET /objects/<key>`
 - `GET /objects/<key>/v/<version>`
 - `GET /objects/<key>/t/<time>`
-- `GET /log/<key>` 
+- `GET /log/<key>`
 
 
 ## Notifications
@@ -218,6 +218,8 @@ mongo:
 http:
   host: localhost
   port: 5000
+  tlscert: ""
+  tlskey: ""
 smtp:
   host: localhost
   port: 25
