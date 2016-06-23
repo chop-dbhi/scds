@@ -12,25 +12,25 @@ var (
 )
 
 type Change struct {
-	Before interface{}
-	After  interface{}
+	Before interface{} `json:"before"`
+	After  interface{} `json:"after"`
 }
 
 type Revision struct {
-	Version   int
-	Time      int64
-	Additions map[string]interface{} `bson:",omitempty"`
-	Removals  map[string]interface{} `bson:",omitempty"`
-	Changes   map[string]Change      `bson:",omitempty"`
+	Version   int                    `json:"version"`
+	Time      int64                  `json:"time"`
+	Additions map[string]interface{} `bson:",omitempty" json:"additions,omitempty"`
+	Removals  map[string]interface{} `bson:",omitempty" json:"removals,omitempty"`
+	Changes   map[string]Change      `bson:",omitempty" json:"changes,omitempty"`
 }
 
 type Object struct {
-	ID      bson.ObjectId `bson:"_id" json:"_id,omitempty"`
-	Key     string
-	Value   map[string]interface{}
-	Version int
-	Time    int64
-	History []*Revision `json:",omitempty" yaml:",omitempty"`
+	ID      bson.ObjectId          `bson:"_id" json:"_id,omitempty"`
+	Key     string                 `json:"key"`
+	Value   map[string]interface{} `json:"value"`
+	Version int                    `json:"version"`
+	Time    int64                  `json:"time"`
+	History []*Revision            `json:"history,omitempty" yaml:",omitempty"`
 }
 
 func applyRevision(o *Object, r *Revision) {

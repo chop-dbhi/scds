@@ -83,13 +83,13 @@ scds put bob '{"name": "Bob"}'
 
 ```json
 {
-  "Version": 1,
-  "Time": 1436960622,
-  "Additions": {
+  "version": 1,
+  "time": 1436960622,
+  "additions": {
     "name": "Bob"
   },
-  "Removals": null,
-  "Changes": null
+  "removals": null,
+  "changes": null
 }
 ```
 
@@ -107,16 +107,16 @@ scds put bob '{"name": "Bob Smith", "email": "bob@smith.net"}'
 
 ```json
 {
-  "Version": 2,
-  "Time": 1436960632,
-  "Additions": {
+  "version": 2,
+  "time": 1436960632,
+  "additions": {
     "email": "bob@smith.net"
   },
-  "Removals": null,
-  "Changes": {
+  "removals": null,
+  "changes": {
     "name": {
-      "Before": "Bob",
-      "After": "Bob Smith"
+      "before": "Bob",
+      "after": "Bob Smith"
   }
 }
 ```
@@ -129,13 +129,13 @@ scds get bob
 
 ```json
 {
-  "Key": "bob",
-  "Value": {
+  "key": "bob",
+  "value": {
     "email": "bob@smith.net",
     "name": "Bob Smith"
   },
-  "Version": 2,
-  "Time": 1436960632
+  "version": 2,
+  "time": 1436960632
 }
 ```
 
@@ -148,25 +148,25 @@ scds log bob
 ```json
 [
   {
-    "Version": 1,
-    "Time": 1436960622,
-    "Additions": {
+    "version": 1,
+    "time": 1436960622,
+    "additions": {
       "name": "Bob"
     },
-    "Removals": null,
-    "Changes": null
+    "removals": null,
+    "changes": null
   },
   {
-    "Version": 2,
-    "Time": 1436960632,
-    "Additions": {
+    "version": 2,
+    "time": 1436960632,
+    "additions": {
       "email": "bob@smith.net"
     },
-    "Removals": null,
-    "Changes": {
+    "removals": null,
+    "changes": {
       "name": {
-        "Before": "Bob",
-        "After": "Bob Smith"
+        "before": "Bob",
+        "after": "Bob Smith"
       }
     }
   }

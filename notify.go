@@ -166,9 +166,9 @@ func NotifyEmail(cfg *Config, o *Object, r *Revision) error {
 
 // Subscriber
 type Subscriber struct {
-	ID    bson.ObjectId `bson:"_id,omitempty"`
-	Email string
-	Time  time.Time
+	ID    bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
+	Email string        `json:"email"`
+	Time  time.Time     `json:"time"`
 }
 
 func AllSubscribers(cfg *Config) ([]*Subscriber, error) {
