@@ -21,11 +21,11 @@ env:
 before_install:
     - wget https://github.com/Masterminds/glide/releases/download/0.10.2/glide-0.10.2-linux-amd64.tar.gz
     - tar zxf glide-0.10.2-linux-amd64.tar.gz
-    - mv ./linux-amd64/glide /usr/bin/
-    - chmod +x /usr/bin/glide
 
 install:
-    - make test-install
+    - ./linux-amd64/glide install
+    - go get golang.org/x/tools/cmd/cover
+    - go get github.com/mattn/goveralls
 
 # Wait for mongodb to start
 before_script:
