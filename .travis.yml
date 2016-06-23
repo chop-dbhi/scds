@@ -18,6 +18,12 @@ env:
 
     MONGO_URI: 127.0.0.1:27017/scds_test
 
+before_install:
+    - wget https://github.com/Masterminds/glide/releases/download/0.10.2/glide-0.10.2-linux-amd64.tar.gz
+    - tar zxf glide-0.10.2-linux-amd64.tar.gz
+    - mv ./linux-amd64/glide /usr/bin/
+    - chmod +x /usr/bin/glide
+
 install:
     - make test-install
 

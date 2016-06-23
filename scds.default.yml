@@ -1,0 +1,18 @@
+debug: false
+
+mongo:
+  uri: 127.0.0.1/scds
+
+http:
+  host: 127.0.0.1
+  port: 5000
+  tlscert: ""
+  tlskey: ""
+  cors: false
+
+smtp:
+  host: localhost
+  port: 25
+  user: ""
+  password: ""
+  from: ""

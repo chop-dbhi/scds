@@ -1,16 +1,14 @@
-FROM golang
+FROM scratch
 
-RUN mkdir -p /go/src/github.com/chop-dbhi/scds
-WORKDIR /go/src/github.com/chop-dbhi/scds
+ENV SCDS_CONFIG=/config/scds.yml
 
-COPY . /go/src/github.com/chop-dbhi/scds
-
-RUN make install
-RUN make build
-
-ENTRYPOINT ["/go/bin/scds"]
-
+VOLUME /config
 EXPOSE 5000
+
+COPY ./dist/linux-amd64/scds /bin/scds
+COPY ./scds.default.yml /config/scds.yml
+
+ENTRYPOINT ["/bin/scds"]
 
 # Run the HTTP server.
 CMD ["-mongo.uri", "mongo/scds", "http", "-host", "0.0.0.0"]
