@@ -1,18 +1,7 @@
 all: install
 
-clean:
-	go clean ./...
-
-doc:
-	godoc -http=:6060
-
 install:
-	go get github.com/labstack/echo
-	go get gopkg.in/mgo.v2
-	go get gopkg.in/mgo.v2/bson
-	go get gopkg.in/yaml.v2
-	go get github.com/spf13/viper
-	go get github.com/jordan-wright/email
+	glide install
 
 test-install: install
 	go get golang.org/x/tools/cmd/cover
@@ -45,13 +34,5 @@ build-all: build
 		-os="linux windows darwin" \
 		-arch="amd64" \
 		./cmd/origins > /dev/null
-
-fmt:
-	go vet ./...
-	go fmt ./...
-
-lint:
-	golint ./...
-
 
 .PHONY: test assets

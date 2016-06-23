@@ -1,0 +1,11 @@
+package: github.com/chop-dbhi/scds
+import:
+- package: github.com/jordan-wright/email
+- package: gopkg.in/labstack/echo.v2
+  subpackages:
+  - middleware
+- package: github.com/spf13/viper
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson
+- package: gopkg.in/yaml.v2

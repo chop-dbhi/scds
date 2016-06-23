@@ -1,13 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo"
-	mw "github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/engine"
+
+	"gopkg.in/labstack/echo.v2/engine/standard"
+	mw "gopkg.in/labstack/echo.v2/middleware"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -16,16 +18,24 @@ const StatusUnprocessableEntity = 422
 func runHTTP(cfg *Config) {
 	app := echo.New()
 
-	app.Use(mw.Logger())
-	app.Use(mw.Gzip())
-	app.Use(mw.Recover())
-
 	app.SetDebug(cfg.Debug)
 
-	app.Use(func(c *echo.Context) error {
-		c.Set("config", cfg)
-		return nil
+	app.Pre(mw.RemoveTrailingSlash())
+	app.Use(mw.Logger())
+	app.Use(mw.Recover())
+
+	app.Use(mw.GzipWithConfig(mw.GzipConfig{
+		Level: 5,
+	}))
+
+	app.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Set("config", cfg)
+			return next(c)
+		}
 	})
+
+	app.Get("/", rootHandler)
 
 	app.Get("/keys", keysHandler)
 
@@ -43,23 +53,30 @@ func runHTTP(cfg *Config) {
 	addr := cfg.HTTP.Addr()
 	log.Printf("* [http] Listening on %s", addr)
 
-	app.Run(addr)
+	ecfg := engine.Config{
+		Address: addr,
+	}
+
+	app.Run(standard.WithConfig(ecfg))
 }
 
-func putHandler(c *echo.Context) error {
-	key := c.Param("key")
-	req := c.Request()
+func rootHandler(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"name":    "SCDS",
+		"version": "1.0.0",
+	})
+}
 
-	defer req.Body.Close()
-
+func putHandler(c echo.Context) error {
 	var val map[string]interface{}
 
-	if err := json.NewDecoder(req.Body).Decode(&val); err != nil {
+	if err := c.Bind(&val); err != nil {
 		return err
 	}
 
 	cfg := c.Get("config").(*Config)
 
+	key := c.Param("key")
 	obj, err := Put(cfg, key, val)
 
 	if err != nil {
@@ -71,12 +88,10 @@ func putHandler(c *echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	}
 
-	resp := c.Response()
-
-	return json.NewEncoder(resp).Encode(obj)
+	return c.JSON(http.StatusOK, obj)
 }
 
-func keysHandler(c *echo.Context) error {
+func keysHandler(c echo.Context) error {
 	cfg := c.Get("config").(*Config)
 
 	keys, err := Keys(cfg)
@@ -85,12 +100,10 @@ func keysHandler(c *echo.Context) error {
 		return err
 	}
 
-	resp := c.Response()
-
-	return json.NewEncoder(resp).Encode(keys)
+	return c.JSON(http.StatusOK, keys)
 }
 
-func getHandler(c *echo.Context) error {
+func getHandler(c echo.Context) error {
 	key := c.Param("key")
 
 	vs := c.Param("version")
@@ -141,12 +154,10 @@ func getHandler(c *echo.Context) error {
 	// Do not include history in output.
 	obj.History = nil
 
-	resp := c.Response()
-
-	return json.NewEncoder(resp).Encode(obj)
+	return c.JSON(http.StatusOK, obj)
 }
 
-func logHandler(c *echo.Context) error {
+func logHandler(c echo.Context) error {
 	key := c.Param("key")
 
 	cfg := c.Get("config").(*Config)
@@ -162,14 +173,10 @@ func logHandler(c *echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	}
 
-	resp := c.Response()
-
-	return json.NewEncoder(resp).Encode(log)
+	return c.JSON(http.StatusOK, log)
 }
 
-func getSubscribersHandler(c *echo.Context) error {
-	resp := c.Response()
-
+func getSubscribersHandler(c echo.Context) error {
 	cfg := c.Get("config").(*Config)
 
 	subs, err := AllSubscribers(cfg)
@@ -178,12 +185,10 @@ func getSubscribersHandler(c *echo.Context) error {
 		return err
 	}
 
-	return json.NewEncoder(resp).Encode(subs)
+	return c.JSON(http.StatusOK, subs)
 }
 
-func addSubscribersHandler(c *echo.Context) error {
-	req := c.Request()
-
+func addSubscribersHandler(c echo.Context) error {
 	cfg := c.Get("config").(*Config)
 
 	var (
@@ -191,7 +196,7 @@ func addSubscribersHandler(c *echo.Context) error {
 		emails []string
 	)
 
-	if err = json.NewDecoder(req.Body).Decode(&emails); err != nil {
+	if err = c.Bind(&emails); err != nil {
 		return c.JSON(StatusUnprocessableEntity, map[string]interface{}{
 			"message": "problem decoding request body",
 			"error":   err,
@@ -212,7 +217,7 @@ func addSubscribersHandler(c *echo.Context) error {
 	})
 }
 
-func deleteSubscriberHandler(c *echo.Context) error {
+func deleteSubscriberHandler(c echo.Context) error {
 	token := c.Param("token")
 
 	cfg := c.Get("config").(*Config)
