@@ -3,8 +3,31 @@ package main
 import (
 	"flag"
 
+	"github.com/blang/semver"
 	"github.com/spf13/viper"
 )
+
+var (
+	progVersion = semver.Version{
+		Major: 1,
+		Minor: 0,
+		Patch: 0,
+		Pre: []semver.PRVersion{
+			{VersionStr: "beta"},
+			{VersionNum: 1, IsNum: true},
+		},
+	}
+
+	buildVersion string
+)
+
+func init() {
+	if buildVersion != "" {
+		progVersion.Build = []string{
+			buildVersion,
+		}
+	}
+}
 
 func main() {
 	// Initialize viper and default options.
@@ -38,6 +61,9 @@ func main() {
 
 	// Route command.
 	switch args[0] {
+	case "version":
+		versionCmd(args[1:])
+
 	case "put":
 		putCmd(args[1:])
 

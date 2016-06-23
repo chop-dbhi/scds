@@ -8,10 +8,32 @@ import (
 	"os"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/yaml.v2"
 )
+
+func versionCmd(args []string) {
+	var f bool
+
+	fs := flag.NewFlagSet("version", flag.ExitOnError)
+
+	fs.BoolVar(&f, "final", false, "Release version only.")
+	fs.Parse(args)
+
+	if f {
+		final := semver.Version{
+			Major: progVersion.Major,
+			Minor: progVersion.Minor,
+			Patch: progVersion.Patch,
+		}
+
+		fmt.Fprintln(os.Stdout, final)
+	} else {
+		fmt.Fprintln(os.Stdout, progVersion)
+	}
+}
 
 func putCmd(args []string) {
 	if len(args) < 1 {

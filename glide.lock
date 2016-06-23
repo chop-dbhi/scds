@@ -1,6 +1,8 @@
-hash: ea5238aaea84f4af1db76724b0c12dfa50411aa94495f7db2e8e090b0b3f6e6c
-updated: 2016-06-23T05:31:51.954255869-04:00
+hash: 80c7d8069040e1afe109f772f772a42ca94579c8dfa21517f06413cbab84379e
+updated: 2016-06-23T08:48:11.625742494-04:00
 imports:
+- name: github.com/blang/semver
+  version: e64c75d1c910cd81c8caa1f2cc2c6409dd65af81
 - name: github.com/BurntSushi/toml
   version: f0aeabca5a127c4078abb8c8d64298b147264b55
 - name: github.com/dgrijalva/jwt-go
