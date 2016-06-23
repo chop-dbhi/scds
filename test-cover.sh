@@ -8,7 +8,7 @@ RETVAL=0
 # Standard go tooling behavior is to ignore dirs with leading underscores
 for dir in $(find . -maxdepth 10 -not -path './vendor*' -not -path './.git*' -not -path '*/_*' -type d); do
     if find $dir -type f | grep \.go$ > /dev/null; then
-        go test -covermode=count -coverprofile=$dir/profile.tmp $dir || RETVAL=1;
+        go test -v -covermode=count -coverprofile=$dir/profile.tmp $dir || RETVAL=1
 
         if [ -f $dir/profile.tmp ]; then
             cat $dir/profile.tmp | tail -n +2 >> profile.cov
