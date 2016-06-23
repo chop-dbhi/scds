@@ -43,9 +43,6 @@ watch:
 test:
 	go test -cover $(glide novendor)
 
-test-travis:
-	./test-cover.sh
-
 bench:
 	go test -run=none -bench=. -benchmem ./...
 
