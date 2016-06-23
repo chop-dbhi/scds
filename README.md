@@ -220,6 +220,7 @@ http:
   port: 5000
   tlscert: ""
   tlskey: ""
+  cors: false
 smtp:
   host: localhost
   port: 25

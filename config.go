@@ -88,6 +88,7 @@ func GetConfig() *Config {
 		HTTP: HTTPConfig{
 			Host:    viper.GetString("http.host"),
 			Port:    viper.GetInt("http.port"),
+			CORS:    viper.GetBool("http.cors"),
 			TLSCert: viper.GetString("http.tlscert"),
 			TLSKey:  viper.GetString("http.tlskey"),
 		},
@@ -132,6 +133,7 @@ func (s *SMTPConfig) Auth() smtp.Auth {
 type HTTPConfig struct {
 	Host    string
 	Port    int
+	CORS    bool
 	TLSCert string
 	TLSKey  string
 }

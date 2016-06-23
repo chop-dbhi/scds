@@ -28,6 +28,10 @@ func runHTTP(cfg *Config) {
 		Level: 5,
 	}))
 
+	if cfg.HTTP.CORS {
+		app.Use(mw.CORS())
+	}
+
 	app.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			c.Set("config", cfg)
