@@ -10,6 +10,8 @@ var cfg *Config
 func init() {
 	InitConfig()
 	cfg = GetConfig()
+
+	safeMode.WMode = ""
 }
 
 func resetDB() {
