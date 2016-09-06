@@ -10,3 +10,4 @@ import:
   - bson
 - package: gopkg.in/yaml.v2
 - package: github.com/blang/semver
+- package: github.com/xeipuuv/gojsonschema
