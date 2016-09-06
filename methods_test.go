@@ -68,7 +68,7 @@ func TestMethods(t *testing.T) {
 	h, err := Log(cfg, "bob")
 
 	if len(h) != 2 {
-		t.Error("log1: expected 2 revisions, got %d", len(h))
+		t.Errorf("log1: expected 2 revisions, got %d", len(h))
 	}
 }
 

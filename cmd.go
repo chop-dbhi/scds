@@ -100,7 +100,7 @@ func getCmd(args []string) {
 	t, err := ParseTimeString(ts)
 
 	if v > 0 && t > 0 {
-		fmt.Println("error: version and time are mutually exclusive\n")
+		fmt.Print("error: version and time are mutually exclusive\n\n")
 		PrintUsage("get")
 	}
 
