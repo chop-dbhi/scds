@@ -23,8 +23,9 @@ imports:
 - name: github.com/jordan-wright/email
   version: fd703108daeb23d77c124d12978e9b6c4f28f034
 - name: github.com/labstack/echo
-  version: fa80ead5e2739b8e63076081e275d80c96cd7ad7
+  version: v2.0.2
   subpackages:
+  - context
   - engine
   - log
 - name: github.com/labstack/gommon
