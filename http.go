@@ -89,6 +89,11 @@ func putHandler(c echo.Context) error {
 	obj, err := Put(cfg, key, val)
 
 	if err != nil {
+		// Failed validation.
+		if errs, ok := err.(ResultErrors); ok {
+			return c.JSON(StatusUnprocessableEntity, errs)
+		}
+
 		return err
 	}
 
