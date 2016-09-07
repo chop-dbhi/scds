@@ -252,3 +252,7 @@ A basic Docker Compose file is provided that includes starting a MongoDB contain
 ```
 docker-compose up -d
 ```
+
+## Development
+
+Go 1.7 or later is required for development.
