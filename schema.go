@@ -49,7 +49,7 @@ func (r ResultErrors) Error() string {
 	var b bytes.Buffer
 
 	for k, errs := range r {
-		fmt.Fprint(&b, k)
+		fmt.Fprintln(&b, k)
 
 		for _, err := range errs {
 			fmt.Fprintf(&b, "- %s\n", err)

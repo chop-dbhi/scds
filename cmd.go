@@ -62,6 +62,10 @@ func putCmd(args []string) {
 	o, err := Put(cfg, args[0], val)
 
 	if err != nil {
+		if x, ok := err.(ResultErrors); ok {
+			log.Fatalf("validation error\n%s", x)
+		}
+
 		log.Fatal(err)
 	}
 
