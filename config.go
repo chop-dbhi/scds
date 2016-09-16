@@ -77,6 +77,40 @@ func GetConfig() *Config {
 		viper.ReadInConfig()
 	}
 
+	// Parse schemas
+	var schemas []*Schema
+	for k, v := range viper.GetStringMap("schemas") {
+		s := Schema{
+			Name: k,
+		}
+
+		for xf, xd := range v.(map[interface{}]interface{}) {
+			if xd == nil {
+				continue
+			}
+
+			switch xf.(string) {
+			case "scope":
+				s.Scope = xd.(string)
+
+			case "field":
+				s.Field = xd.(string)
+
+			case "pattern":
+				s.Pattern = xd.(string)
+
+			case "file":
+				s.File = xd.(string)
+			}
+		}
+
+		if err := s.Load(); err != nil {
+			log.Fatalf("schema %s: %s", k, err)
+		}
+
+		schemas = append(schemas, &s)
+	}
+
 	return &Config{
 		Debug:  viper.GetBool("debug"),
 		Config: viper.GetString("config"),
@@ -100,6 +134,8 @@ func GetConfig() *Config {
 			Password: viper.GetString("smtp.password"),
 			From:     viper.GetString("smtp.from"),
 		},
+
+		Schemas: schemas,
 	}
 }
 
@@ -198,9 +234,10 @@ func (c *MongoConfig) Subscribers() *mgo.Collection {
 
 // Config contains all configuration options.
 type Config struct {
-	Debug  bool
-	Config string
-	Mongo  MongoConfig
-	HTTP   HTTPConfig
-	SMTP   SMTPConfig
+	Debug   bool
+	Config  string
+	Mongo   MongoConfig
+	HTTP    HTTPConfig
+	SMTP    SMTPConfig
+	Schemas []*Schema
 }

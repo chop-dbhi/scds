@@ -237,6 +237,65 @@ scds -mongo.uri dockerhost/scds ...
 
 If a `scds.yml` file is defined in the working directory, it will be read in automatically. To use an alternate path, the `-config <path>` (or `SCDS_CONFIG=<path>`) can be used.
 
+### JSON Schema
+
+SCDS supports document validation against predefined [JSON Schema](http://json-schema.org) documents. The simplest setup is a schema used for all documents.
+
+```yaml
+schemas:
+  default:
+    file: schema.json
+```
+
+To validate a subset of objects, a `scope` can be specified at the `object` or `value` level. An `object` scope supports the `pattern` key for matching on the `key` of the object.
+
+```yaml
+schemas:
+  users:
+    scope: object
+    pattern: "users\..*"
+    file: user.json
+```
+
+Any object with a key that starts with `users.` will be validated by the `user.json` schema. Thus the following would match:
+
+```http
+PUT /objects/users.1
+
+{ ... }
+```
+
+or via the command line:
+
+```
+scds put users.1 '{}'
+```
+
+The `value` scope pattern matches against a particular field in the object data.
+
+```yaml
+schemas:
+  users:
+    scope: value
+    field: type
+    pattern: user
+    file: user.json
+```
+
+The following document would match since it contains the `type` field with a value of `user`.
+
+```http
+PUT /objects/abc123
+
+{
+  "type": "user",
+  "firstName": "Jon",
+  "lastName": "Doe"
+}
+```
+
+An object that matches multiple schema patterns will be validated against all of them. This allows for composing smaller schemas together to validate various parts of the documents.
+
 ## Docker
 
 The image defaults to running the HTTP interface and looks for a MongoDB server listening on `mongo:27017`.

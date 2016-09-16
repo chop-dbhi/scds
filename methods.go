@@ -182,6 +182,16 @@ func Put(cfg *Config, k string, v map[string]interface{}) (*Revision, error) {
 		return nil, ErrInvalidKey(k)
 	}
 
+	if len(cfg.Schemas) > 0 {
+		res, err := Validate(k, v, cfg.Schemas...)
+		if err != nil {
+			return nil, err
+		}
+		if !res.Valid() {
+			return nil, res.Errors()
+		}
+	}
+
 	c := cfg.Mongo.Objects()
 
 	// Query.
