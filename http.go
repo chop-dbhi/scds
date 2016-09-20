@@ -72,7 +72,7 @@ func runHTTP(cfg *Config) {
 func rootHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"name":    "SCDS",
-		"version": "1.0.0",
+		"version": progVersion.String(),
 	})
 }
 
