@@ -8,8 +8,8 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine"
 
-	"gopkg.in/labstack/echo.v2/engine/standard"
-	mw "gopkg.in/labstack/echo.v2/middleware"
+	"github.com/labstack/echo/engine/standard"
+	mw "github.com/labstack/echo/middleware"
 	"gopkg.in/mgo.v2/bson"
 )
 
